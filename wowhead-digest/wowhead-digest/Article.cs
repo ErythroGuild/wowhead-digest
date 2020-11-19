@@ -1,4 +1,5 @@
-﻿using System.Text.RegularExpressions;
+﻿using System;
+using System.Text.RegularExpressions;
 
 using HtmlAgilityPack;
 
@@ -43,12 +44,14 @@ namespace wowhead_digest {
 			get => IdToUrl(_id);
 			set => _id = UrlToId(value);
 		}
+		public DateTime time { get; set; }
 		public Category category { get => ParseCategory(); }
 		public Series series { get => ParseSeries(); }
 		public bool hasSpoiler { get => ParseSpoiler(); }
 
-		public Article(string id) {
+		public Article(string id, DateTime time) {
 			this.id = id;
+			this.time = time;
 		}
 
 		private Category ParseCategory() {
