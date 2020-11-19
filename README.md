@@ -1,0 +1,1 @@
+wowhead-digest
