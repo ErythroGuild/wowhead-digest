@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Puck {
+namespace wowhead_digest {
 	class Logger {
 		public enum Type {
 			Debug	= 0,
