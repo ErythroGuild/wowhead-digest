@@ -67,7 +67,7 @@ namespace wowhead_digest {
 		// Hide default constructor.
 		private Settings() {}
 
-		public static async Task<Settings> Load(string data, DiscordClient client) {
+		public static async Task<Settings> Load(string data, ref DiscordClient client) {
 			Settings s = new Settings();
 
 			// Read + preprocess data.

@@ -30,6 +30,8 @@ namespace wowhead_digest {
 			{Category.Wowhead  , "\uD83D\uDD36"},	// diamond, orange
 		};
 
+		public const int max_articles = 10;
+
 		private const Int32 color = 0xB21C1A;
 		private const string url_favicon = @"https://wow.zamimg.com/images/logos/favicon-standard.png";
 
