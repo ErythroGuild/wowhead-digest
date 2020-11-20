@@ -81,10 +81,9 @@ namespace wowhead_digest {
 			}
 
 			// Convert data.
-			Dictionary<T, bool> StringsToEntries<T>(string data) {
+			Dictionary<T, bool> StringsToEntries<T>(List<string> data) {
 				Dictionary<T, bool> entries = new Dictionary<T, bool>();
-				List<string> entries_buf = ParseList(data);
-				foreach (string entry in entries_buf) {
+				foreach (string entry in data) {
 					string[] entry_buf = entry.Split(delim_key);
 					T key = (T) Enum.Parse(typeof(T), entry_buf[0]);
 					bool val = Convert.ToBoolean(entry_buf[1]);
@@ -119,10 +118,10 @@ namespace wowhead_digest {
 					break;
 
 				case key_doShowCategory:
-					s.doShowCategory = StringsToEntries<Category>(val);
+					s.doShowCategory = StringsToEntries<Category>(ParseList(val));
 					break;
 				case key_doShowSeries:
-					s.doShowSeries = StringsToEntries<Series>(val);
+					s.doShowSeries = StringsToEntries<Series>(ParseList(val));
 					break;
 
 				case key_articles_shown:
