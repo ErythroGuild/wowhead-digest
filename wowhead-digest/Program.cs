@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
@@ -44,6 +44,61 @@ namespace wowhead_digest {
 
 			discord.Ready += async (s, e) => {
 				log.Info("Connected to discord.");
+			};
+
+			discord.GuildDownloadCompleted += async (s, e) => {
+				log.Info("Guild streaming completed.");
+
+				// load guild settings
+				Dictionary<string, string> data = new Dictionary<string, string>();
+				StreamReader reader = new StreamReader(path_settings);
+				while (reader.Peek() != -1) {
+					string line = reader.ReadLine();
+					if (line == "")
+						continue;
+					if (line.StartsWith("GUILD - ")) {
+						string guild = Regex.Match(line, @"^GUILD - (\d+)$").Groups[1].Value;
+						string settings = "";
+						while (reader.Peek() != -1) {
+							line = reader.ReadLine();
+							if (line.StartsWith("\t")) {
+								settings += line + "\n";
+							} else {
+								break;
+							}
+						}
+						data.Add(guild, settings);
+					}
+				}
+
+				// TODO: handle exceptions
+				// parse guild settings
+				foreach (string guild_id in data.Keys) {
+					DiscordGuild guild =
+						await discord.GetGuildAsync(Convert.ToUInt64(guild_id));
+					Settings settings =
+						await Settings.Load(data[guild_id], ref discord);
+				}
+			};
+
+			discord.MessageCreated += async (s, e) => {
+				// Must be webhook message & author must be Wowhead webhook.
+				if (!e.Message.WebhookMessage || e.Message.WebhookId != id_wh_wowhead)
+					return;
+				// Must be posted to <Erythro> ingest channel.
+				if (e.Channel.Id != id_ch_ingest)
+					return;
+
+				log.Info("Received Wowhead news.", 1);
+				foreach (DiscordEmbed embed in e.Message.Embeds) {
+					string url = embed.Url.AbsoluteUri;
+					string id = Article.UrlToId(url);
+					Article article = new Article(id, DateTime.Now);
+
+					//foreach (DiscordGuild guild in discord.Guilds.Values) {
+					//	guildData[guild].Push(article);
+					//}
+				}
 			};
 
 			await discord.ConnectAsync();
