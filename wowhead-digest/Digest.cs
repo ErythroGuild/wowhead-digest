@@ -1,48 +1,77 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 
-using DSharpPlus;
 using DSharpPlus.Entities;
+
+using static wowhead_digest.Article;
 
 namespace wowhead_digest {
 	class Digest {
+		private static readonly Dictionary<Category, string> bullets =
+			new Dictionary<Category, string> {
+			{Category.Live     , "\uD83D\uDFE9"},	// square, green
+			{Category.PTR      , "\uD83D\uDFE6"},	// square, blue
+			{Category.Beta     , "\uD83D\uDFEA"},	// square, purple
+			{Category.Classic  , "\uD83D\uDFE4"},	// circle, brown
+			{Category.Warcraft3, "\u26AA"      },	// circle, white
+			{Category.Diablo   , "\uD83D\uDD34"},	// circle, red
+			// {Category.Overwatch, "\uD83D\uDFE1"},	// circle, yellow
+			{Category.Blizzard , "\uD83D\uDD37"},	// diamond, blue
+			{Category.Wowhead  , "\uD83D\uDD36"},	// diamond, orange
+		};
+
 		private const Int32 color = 0xB21C1A;
 		private const string url_favicon = @"https://wow.zamimg.com/images/logos/favicon-standard.png";
 
 		public DiscordMessage message = null;
-		public List<Article> articles;
-		public List<Article> articles_spoiler;
-		public List<Article> articles_unspoiler;
+		public SortedSet<Article> articles =
+			new SortedSet<Article>(new ArticleComparer());
 
-		public DiscordEmbed GetEmbed(GuildData guildData) {
-			// TODO: error check and make sure an article exists
-			string str_date = articles[0].time.Date.ToString("D");
-			string str_time = articles[0].time.TimeOfDay.ToString("T");
-			string url_thumbnail = articles[0].thumbnail;
-			string description = "";
+		public HashSet<Article> articles_spoiler = new HashSet<Article>();
+		public HashSet<Article> articles_unspoiler = new HashSet<Article>();
 
+		public DiscordEmbed GetEmbed() {
+			// Make sure an article exists
+			if (articles.Count < 1)
+				return null;
+			Article article_example = articles.Min;
+
+			string str_time = article_example.time.TimeOfDay.ToString("T");
+			string url_thumbnail = article_example.thumbnail;
+
+			bool isFirstArticle = true;
+			string content = "";
 			foreach(Article article in articles) {
-				description += "\n\u2022 [";
+				if (!isFirstArticle)
+					content += "\n";
+				else
+					isFirstArticle = false;
+
+				content += bullets[article.category] + " [";
 				if (article.hasSpoiler &&
 					!articles_unspoiler.Contains(article) ||
 					articles_spoiler.Contains(article)
 				) {
-					description += "--SPOILER!--";
+					content += "--**SPOILER**--";
 				} else {
-					description += article.title;
+					content += article.title;
 				}
-				description += "](" + article.url + ")\n";
+				content += "](" + article.url + ")\n";
 			}
 
 			DiscordEmbedBuilder builder = new DiscordEmbedBuilder()
 				.WithColor(new DiscordColor(color))
 				.WithThumbnail(url_thumbnail)
-				.WithTitle(str_date)
-				.WithDescription(description)
+				.WithDescription(content)
 				.WithFooter("last updated " + str_time, url_favicon);
 
 			return builder.Build();
+		}
+
+		protected class ArticleComparer : IComparer<Article> {
+			public int Compare(Article x, Article y) {
+				return x.time.CompareTo(y.time);
+			}
 		}
 	}
 }
