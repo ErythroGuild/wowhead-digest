@@ -86,6 +86,10 @@ namespace wowhead_digest {
 				return false;
 		}
 
+		public override int GetHashCode() {
+			return id.GetHashCode();
+		}
+
 		public override string ToString() {
 			return id.ToString() + "@" + time.ToString("s");
 		}
