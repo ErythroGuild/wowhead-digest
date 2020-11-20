@@ -1,5 +1,7 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 using DSharpPlus;
@@ -16,7 +18,9 @@ namespace wowhead_digest {
 		const string path_token    = @"token.txt";
 		const string path_settings = @"settings.txt";
 
-		const ulong channel_debug_id = 489274692255875091;  // <Erythro> - #test
+		const ulong id_wh_wowhead = 779070312561770528;
+		const ulong id_ch_ingest = 777935219193020426;	// <Erythro> - #ingest
+		const ulong id_ch_debug = 489274692255875091;	// <Erythro> - #test
 
 		public static ref readonly Logger GetLogger() { return ref log; }
 
@@ -25,8 +29,8 @@ namespace wowhead_digest {
 				" █   █ ▄▀▄ █   █ █▄█ ██▀ ▄▀▄ █▀▄   █▀▄ █ ▄▀  ██▀ ▄▀▀ ▀█▀ " + "\n" +
 				" ▀▄▀▄▀ ▀▄▀ ▀▄▀▄▀ █ █ █▄▄ █▀█ █▄▀   █▄▀ █ ▀▄█ █▄▄ ▄██  █  " + "\n";
 			Console.WriteLine(title_ascii);
-			//log.show_timestamp = true;
-			//log.type_minimum = Logger.Type.Debug;
+			log.show_timestamp = true;
+			log.type_minimum = Logger.Type.Debug;
 			MainAsync().ConfigureAwait(false).GetAwaiter().GetResult();
 		}
 
@@ -38,9 +42,14 @@ namespace wowhead_digest {
 				return;
 			}
 
-			discord.Ready += async e => {
+			discord.Ready += async (s, e) => {
 				log.Info("Connected to discord.");
 			};
+
+			await discord.ConnectAsync();
+			log.Info("Monitoring messages...");
+
+			await Task.Delay(-1);
 		}
 
 		static void Connect() {
@@ -74,7 +83,7 @@ namespace wowhead_digest {
 			file.Close();
 
 			// Instantiate discord client.
-			puck = new DiscordClient(new DiscordConfiguration {
+			discord = new DiscordClient(new DiscordConfiguration {
 				Token = token,
 				TokenType = TokenType.Bot
 			});
