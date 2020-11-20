@@ -25,7 +25,7 @@ namespace wowhead_digest {
 
 		public DiscordMessage message = null;
 		public SortedSet<Article> articles =
-			new SortedSet<Article>(new ArticleComparer());
+			new SortedSet<Article>(new ArticleTimeComparer());
 
 		public HashSet<Article> articles_spoiler = new HashSet<Article>();
 		public HashSet<Article> articles_unspoiler = new HashSet<Article>();
@@ -66,12 +66,6 @@ namespace wowhead_digest {
 				.WithFooter("last updated " + str_time, url_favicon);
 
 			return builder.Build();
-		}
-
-		protected class ArticleComparer : IComparer<Article> {
-			public int Compare(Article x, Article y) {
-				return x.time.CompareTo(y.time);
-			}
 		}
 	}
 }

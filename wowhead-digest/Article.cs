@@ -1,10 +1,17 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
 using HtmlAgilityPack;
 
 namespace wowhead_digest {
 	class Article {
+		public class ArticleTimeComparer : IComparer<Article> {
+			public int Compare(Article x, Article y) {
+				return x.time.CompareTo(y.time);
+			}
+		}
+
 		// Overwatch is not a valid category (anymore?).
 		// All articles regarding Overwatch seem to be classified as
 		// "Blizzard" instead.
