@@ -7,6 +7,16 @@ using static wowhead_digest.Article;
 
 namespace wowhead_digest {
 	class Digest {
+		public class DigestTimeComparer : IComparer<Digest> {
+			public int Compare(Digest x, Digest y) {
+				if (x.date != y.date) {
+					return x.date.CompareTo(y.date);
+				} else {
+					return x.date_i - y.date_i;
+				}
+			}
+		}
+
 		private static readonly Dictionary<Category, string> bullets =
 			new Dictionary<Category, string> {
 			{Category.Live     , "\uD83D\uDFE9"},	// square, green
@@ -22,6 +32,9 @@ namespace wowhead_digest {
 
 		private const Int32 color = 0xB21C1A;
 		private const string url_favicon = @"https://wow.zamimg.com/images/logos/favicon-standard.png";
+
+		public DateTime date;
+		public int date_i;
 
 		public DiscordMessage message = null;
 		public SortedSet<Article> articles =
@@ -41,7 +54,7 @@ namespace wowhead_digest {
 
 			bool isFirstArticle = true;
 			string content = "";
-			foreach(Article article in articles) {
+			foreach (Article article in articles) {
 				if (!isFirstArticle)
 					content += "\n";
 				else
