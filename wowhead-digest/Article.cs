@@ -31,6 +31,13 @@ namespace wowhead_digest {
 
 		private const string delim = "@";
 
+		public static bool operator ==(Article x, Article y) {
+			return x.id == y.id;
+		}
+		public static bool operator !=(Article x, Article y) {
+			return x.id != y.id;
+		}
+
 		// TODO: add all sorts of error checking for conversions
 
 		// Assumes `url` is a valid Wowhead news URL.
@@ -70,6 +77,13 @@ namespace wowhead_digest {
 		public Article(string id, DateTime time) {
 			this.id = id;
 			this.time = time;
+		}
+
+		public override bool Equals(object obj) {
+			if (obj is Article)
+				return id == ((Article) obj).id;
+			else
+				return false;
 		}
 
 		public override string ToString() {
