@@ -29,6 +29,8 @@ namespace wowhead_digest {
 			TaliesinEvitel,
 		};
 
+		private const string delim = "@";
+
 		// TODO: add all sorts of error checking for conversions
 
 		// Assumes `url` is a valid Wowhead news URL.
@@ -39,6 +41,13 @@ namespace wowhead_digest {
 
 		public static string IdToUrl(string id) {
 			return @"https://www.wowhead.com/news=" + id;
+		}
+
+		public static Article FromString(string data) {
+			string[] data_buf = data.Split(delim, 2);
+			string id = data_buf[0];
+			DateTime time = DateTime.ParseExact(data_buf[1], "s", null);
+			return new Article(id, time);
 		}
 
 		public string id {
@@ -63,6 +72,10 @@ namespace wowhead_digest {
 			this.time = time;
 		}
 
+		public override string ToString() {
+			return id.ToString() + "@" + time.ToString("s");
+		}
+
 		private Category ParseCategory() {
 			HtmlDocument doc = new HtmlWeb().Load(url);
 
@@ -72,7 +85,7 @@ namespace wowhead_digest {
 			HtmlNode node = doc.DocumentNode.SelectSingleNode(xpath);
 
 			int category = node.GetAttributeValue("data-type", 1);
-			return (Category)category;
+			return (Category) category;
 		}
 
 		private Series ParseSeries() {
