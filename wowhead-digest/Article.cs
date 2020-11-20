@@ -48,6 +48,8 @@ namespace wowhead_digest {
 		public Category category { get => ParseCategory(); }
 		public Series series { get => ParseSeries(); }
 		public bool hasSpoiler { get => ParseSpoiler(); }
+		public string title { get => GetTitle(); }
+		public string thumbnail { get => GetThumbnail(); }
 
 		public Article(string id, DateTime time) {
 			this.id = id;
@@ -67,40 +69,48 @@ namespace wowhead_digest {
 		}
 
 		private Series ParseSeries() {
-			HtmlDocument doc = new HtmlWeb().Load(url);
-
-			string xpath = @"//head/title";
-			HtmlNode node = doc.DocumentNode.SelectSingleNode(xpath);
-
-			string title = node.InnerText;
+			string text = title;
 
 			// Check if Wowhead Weekly
-			if (Regex.IsMatch(title, @"^Wowhead Weekly #\d+"))
+			if (Regex.IsMatch(text, @"^Wowhead Weekly #\d+"))
 				return Series.WowheadWeekly;
 
 			// Check if Economy Wrapup
-			if (Regex.IsMatch(title, @"^Wowhead Economy Weekly Wrap-Up \d+"))
+			if (Regex.IsMatch(text, @"^Wowhead Economy Weekly Wrap-Up \d+"))
 				return Series.EconomyWrapup;
 
 			// Check if Taliesin & Evitel
-			if (Regex.IsMatch(title, @"^The Weekly Reset by Taliesin and Evitel"))
+			if (Regex.IsMatch(text, @"^The Weekly Reset by Taliesin and Evitel"))
 				return Series.TaliesinEvitel;
 
 			return Series.Other;
 		}
 
 		private bool ParseSpoiler() {
-			HtmlDocument doc = new HtmlWeb().Load(url);
+			string text = title.ToLower();
 
-			string xpath = @"//head/title";
-			HtmlNode node = doc.DocumentNode.SelectSingleNode(xpath);
-
-			string title = node.InnerText.ToLower();
-
-			if (title.Contains("spoilers") && !title.Contains("no spoilers"))
+			if (text.Contains("spoilers") && !text.Contains("no spoilers"))
 				return true;
 			else
 				return false;
+		}
+
+		private string GetTitle() {
+			HtmlDocument doc = new HtmlWeb().Load(url);
+
+			string xpath = @"//head/meta[@property='og:title']";
+			HtmlNode node = doc.DocumentNode.SelectSingleNode(xpath);
+
+			return node.GetAttributeValue("content", null);
+		}
+
+		private string GetThumbnail() {
+			HtmlDocument doc = new HtmlWeb().Load(url);
+
+			string xpath = @"//head/meta[@property='og:image']";
+			HtmlNode node = doc.DocumentNode.SelectSingleNode(xpath);
+
+			return node.GetAttributeValue("content", null);
 		}
 	}
 }
