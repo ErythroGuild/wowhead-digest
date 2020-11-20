@@ -34,8 +34,6 @@ namespace wowhead_digest {
 			return @"https://www.wowhead.com/news=" + id;
 		}
 
-		private string _id;
-
 		public string id {
 			get => _id;
 			set => _id = value;
@@ -50,6 +48,8 @@ namespace wowhead_digest {
 		public bool hasSpoiler { get => ParseSpoiler(); }
 		public string title { get => GetTitle(); }
 		public string thumbnail { get => GetThumbnail(); }
+
+		private string _id;
 
 		public Article(string id, DateTime time) {
 			this.id = id;
