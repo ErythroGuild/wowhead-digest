@@ -14,10 +14,13 @@ namespace WowheadDigest {
 		static DiscordClient discord = null;
 		static string str_mention = null;
 
+		static HashSet<Article> articles =
+			new HashSet<Article>();
 		static Dictionary<DiscordGuild, GuildData> guildData =
 			new Dictionary<DiscordGuild, GuildData>();
 
 		const string path_token    = @"token.txt";
+		const string path_articles = @"articles.txt";
 		const string path_settings = @"settings.txt";
 		const string path_digests  = @"digests.txt";
 
@@ -53,6 +56,18 @@ namespace WowheadDigest {
 
 				str_mention = (await discord.GetUserAsync(id_u_self)).Mention;
 				log.Debug("  Self mention string: " + str_mention);
+
+				log.Info("Loading article database...");
+				StreamReader reader = new StreamReader(path_articles);
+				while (reader.Peek() != -1) {
+					string line = reader.ReadLine();
+					if (line == "")
+						continue;
+					Article article = Article.FromString(line);
+					articles.Add(article);
+				}
+				log.Info("Article database loaded.");
+				log.Debug("  " + articles.Count.ToString() + " item(s) loaded.");
 			};
 
 			discord.GuildDownloadCompleted += async (s, e) => {
