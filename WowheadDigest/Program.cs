@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 using DSharpPlus;
 using DSharpPlus.Entities;
+using DSharpPlus.EventArgs;
 
 namespace WowheadDigest {
 	class Program {
@@ -158,15 +159,16 @@ namespace WowheadDigest {
 					string[] split = message.Split(' ', 2);
 					string cmd, arg;
 					if (message.Contains(' ')) {
-						cmd = split[0];
-						arg = split[1];
+						cmd = split[0].Trim();
+						arg = split[1].TrimStart();
 					} else {
-						cmd = message;
+						cmd = message.TrimStart();
 						arg = "";
 					}
 					log.Debug("  cmd: " + cmd);
 					log.Debug("  arg: " + arg);
-					string reply = ParseCommand(cmd, arg, e.Guild);
+					// TODO: make this synchronous...
+					string reply = ParseCommand(cmd, arg, e);
 					DiscordChannel ch_reply = e.Channel;
 #if DEBUG
 					ch_reply = await discord.GetChannelAsync(id_ch_debug);
@@ -257,7 +259,7 @@ namespace WowheadDigest {
 			log.Info("Data saved.");
 		}
 
-		static string ParseCommand(string cmd, string arg, DiscordGuild guild) {
+		static string ParseCommand(string cmd, string arg, MessageCreateEventArgs e) {
 			const string str_cmd_listSettings		= "list-settings";
 			const string str_cmd_listCategories		= "list-categories";
 			const string str_cmd_listSeries			= "list-series";
@@ -277,7 +279,9 @@ namespace WowheadDigest {
 			const string str_cmd_unspoiler	= "unspoiler";
 
 			string output = "";
+			DiscordGuild guild = e.Guild;
 			Settings settings = guildData[guild].settings;
+
 			switch (cmd) {
 			case str_cmd_listSettings:
 				output = "**<" + guild.Name + "> Settings**" + "\n";
@@ -381,8 +385,56 @@ namespace WowheadDigest {
 				}
 				break;
 			case str_cmd_setNews:
+				DiscordChannel ch_news = null;
+				if (e.Message.MentionedChannels.Count > 0) {
+					ch_news = e.Message.MentionedChannels[0];
+				} else if (Regex.IsMatch(arg, @"^\d+$")) {
+					ch_news = guild.GetChannel(Convert.ToUInt64(arg));
+				} else if (arg != "null" && arg != "none") {
+					foreach (DiscordChannel channel in guild.Channels.Values) {
+						if (channel.Name == arg) {
+							ch_news = channel;
+							break;
+						}
+					}
+				}
+				guildData[guild].settings.ch_news = ch_news;
+				Save();
+				if (ch_news == null) {
+					output =
+						"News channel set to none." + "\n" +
+						"Future news digests will be hidden.";
+				} else {
+					output =
+						"News channel set to " + ch_news.Mention + "." + "\n" +
+						"Future news digests will be posted there.";
+				}
 				break;
 			case str_cmd_setLogs:
+				DiscordChannel ch_logs = null;
+				if (e.Message.MentionedChannels.Count > 0) {
+					ch_logs = e.Message.MentionedChannels[0];
+				} else if (Regex.IsMatch(arg, @"^\d+$")) {
+					ch_logs = guild.GetChannel(Convert.ToUInt64(arg));
+				} else if (arg != "null" && arg != "none") {
+					foreach (DiscordChannel channel in guild.Channels.Values) {
+						if (channel.Name == arg) {
+							ch_logs = channel;
+							break;
+						}
+					}
+				}
+				guildData[guild].settings.ch_logs = ch_logs;
+				Save();
+				if (ch_logs == null) {
+					output =
+						"Logging channel set to none." + "\n" +
+						"Future log messages will be hidden.";
+				} else {
+					output =
+						"Logging channel set to " + ch_logs.Mention + "." + "\n" +
+						"Future log messages will be posted there.";
+				}
 				break;
 			case str_cmd_setFreq:
 				Dictionary<string, Settings.PostFrequency> strToPostFreq =
@@ -399,7 +451,7 @@ namespace WowheadDigest {
 				Settings.PostFrequency postFreq = strToPostFreq[arg.ToLower()];
 				guildData[guild].settings.postFrequency = postFreq;
 				Save();
-				output += "Post frequency set to *" +
+				output = "Post frequency set to *" +
 					postFreq.ToString().ToLower() +
 					"*." + "\n";
 				break;
@@ -422,10 +474,10 @@ namespace WowheadDigest {
 				Save();
 				switch (doCensorSpoilers) {
 				case true:
-					output += "Spoiler post titles are now being *hidden*." + "\n";
+					output = "Spoiler post titles are now being *hidden*." + "\n";
 					break;
 				case false:
-					output += "Spoiler post titles are now being *shown*." + "\n";
+					output = "Spoiler post titles are now being *shown*." + "\n";
 					break;
 				}
 				break;
@@ -448,12 +500,141 @@ namespace WowheadDigest {
 				Save();
 				switch (doDetectSpoilers) {
 				case true:
-					output += "Will now try to automatically detect spoilers." + "\n";
+					output = "Will now try to automatically detect spoilers." + "\n";
 					break;
 				case false:
-					output += "Spoilers will need to be manually marked." + "\n";
+					output = "Spoilers will need to be manually marked." + "\n";
 					break;
 				}
+				break;
+			case str_cmd_filterCategory:
+				Dictionary<string, Article.Category> strToCategoryFilter =
+					new Dictionary<string, Article.Category> {
+						{ "live"     , Article.Category.Live },
+						{ "ptr"      , Article.Category.PTR },
+						{ "beta"     , Article.Category.Beta },
+						{ "classic"  , Article.Category.Classic },
+						{ "warcraft3", Article.Category.Warcraft3 },
+						{ "wc3"      , Article.Category.Warcraft3 },
+						//{ "overwatch", Article.Category.Overwatch },
+						//{ "ow"       , Article.Category.Overwatch },
+						{ "diablo"    , Article.Category.Diablo },
+						{ "blizzard"  , Article.Category.Blizzard },
+						{ "blizz"     , Article.Category.Blizzard },
+						{ "wowhead"   , Article.Category.Wowhead },
+						{ "wh"        , Article.Category.Wowhead },
+					};
+				Article.Category categoryFilter = strToCategoryFilter[arg.ToLower()];
+				guildData[guild].settings.doShowCategory[categoryFilter] = false;
+				Save();
+				output = "No longer showing **" + categoryFilter.ToString() + "** posts in digests." + "\n";
+				break;
+			case str_cmd_unfilterCategory:
+				Dictionary<string, Article.Category> strToCategoryUnfilter =
+					new Dictionary<string, Article.Category> {
+						{ "live"     , Article.Category.Live },
+						{ "ptr"      , Article.Category.PTR },
+						{ "beta"     , Article.Category.Beta },
+						{ "classic"  , Article.Category.Classic },
+						{ "warcraft3", Article.Category.Warcraft3 },
+						{ "wc3"      , Article.Category.Warcraft3 },
+						//{ "overwatch", Article.Category.Overwatch },
+						//{ "ow"       , Article.Category.Overwatch },
+						{ "diablo"    , Article.Category.Diablo },
+						{ "blizzard"  , Article.Category.Blizzard },
+						{ "blizz"     , Article.Category.Blizzard },
+						{ "wowhead"   , Article.Category.Wowhead },
+						{ "wh"        , Article.Category.Wowhead },
+					};
+				Article.Category categoryUnfilter = strToCategoryUnfilter[arg.ToLower()];
+				guildData[guild].settings.doShowCategory[categoryUnfilter] = true;
+				Save();
+				output = "Now showing **" + categoryUnfilter.ToString() + "** posts in digests." + "\n";
+				break;
+			case str_cmd_filterSeries:
+				Dictionary<string, Article.Series> strToSeriesFilter =
+					new Dictionary<string, Article.Series> {
+						{ "other"                , Article.Series.Other },
+						{ "miscellaneous"        , Article.Series.Other },
+						{ "m"                    , Article.Series.Other },
+						{ "wowheadweekly"        , Article.Series.WowheadWeekly },
+						{ "wowhead-weekly"       , Article.Series.WowheadWeekly },
+						{ "wowhead weekly"       , Article.Series.WowheadWeekly },
+						{ "whweekly"             , Article.Series.WowheadWeekly },
+						{ "wh-weekly"            , Article.Series.WowheadWeekly },
+						{ "wh weekly"            , Article.Series.WowheadWeekly },
+						{ "economywrapup"        , Article.Series.EconomyWrapup },
+						{ "economy-wrapup"       , Article.Series.EconomyWrapup },
+						{ "economy wrapup"       , Article.Series.EconomyWrapup },
+						{ "weeklyeconomywrapup"  , Article.Series.EconomyWrapup },
+						{ "weekly-economy-wrapup", Article.Series.EconomyWrapup },
+						{ "weekly economy wrapup", Article.Series.EconomyWrapup },
+						{ "economyweeklywrapup"  , Article.Series.EconomyWrapup },
+						{ "economy-weekly-wrapup", Article.Series.EconomyWrapup },
+						{ "economy weekly wrapup", Article.Series.EconomyWrapup },
+						{ "taliesinevitel"       , Article.Series.TaliesinEvitel },
+						{ "taliesin-evitel"      , Article.Series.TaliesinEvitel },
+						{ "taliesin evitel"      , Article.Series.TaliesinEvitel },
+						{ "taliesin&evitel"      , Article.Series.TaliesinEvitel },
+						{ "taliesin & evitel"    , Article.Series.TaliesinEvitel },
+						{ "taliesin+evitel"      , Article.Series.TaliesinEvitel },
+						{ "taliesin + evitel"    , Article.Series.TaliesinEvitel },
+						{ "taliesinandevitel"    , Article.Series.TaliesinEvitel },
+						{ "taliesin-and-evitel"  , Article.Series.TaliesinEvitel },
+						{ "taliesin and evitel"  , Article.Series.TaliesinEvitel },
+						{ "taliesin"             , Article.Series.TaliesinEvitel },
+						{ "evitel"               , Article.Series.TaliesinEvitel },
+						{ "t&e"                  , Article.Series.TaliesinEvitel },
+						{ "t+e"                  , Article.Series.TaliesinEvitel },
+					};
+				Article.Series seriesFilter = strToSeriesFilter[arg.ToLower()];
+				guildData[guild].settings.doShowSeries[seriesFilter] = false;
+				Save();
+				output = "No longer showing **" + seriesFilter.ToString() + "** posts in digests." + "\n";
+				break;
+			case str_cmd_unfilterSeries:
+				Dictionary<string, Article.Series> strToSeriesUnfilter =
+					new Dictionary<string, Article.Series> {
+						{ "other"                , Article.Series.Other },
+						{ "miscellaneous"        , Article.Series.Other },
+						{ "m"                    , Article.Series.Other },
+						{ "wowheadweekly"        , Article.Series.WowheadWeekly },
+						{ "wowhead-weekly"       , Article.Series.WowheadWeekly },
+						{ "wowhead weekly"       , Article.Series.WowheadWeekly },
+						{ "whweekly"             , Article.Series.WowheadWeekly },
+						{ "wh-weekly"            , Article.Series.WowheadWeekly },
+						{ "wh weekly"            , Article.Series.WowheadWeekly },
+						{ "economywrapup"        , Article.Series.EconomyWrapup },
+						{ "economy-wrapup"       , Article.Series.EconomyWrapup },
+						{ "economy wrapup"       , Article.Series.EconomyWrapup },
+						{ "weeklyeconomywrapup"  , Article.Series.EconomyWrapup },
+						{ "weekly-economy-wrapup", Article.Series.EconomyWrapup },
+						{ "weekly economy wrapup", Article.Series.EconomyWrapup },
+						{ "economyweeklywrapup"  , Article.Series.EconomyWrapup },
+						{ "economy-weekly-wrapup", Article.Series.EconomyWrapup },
+						{ "economy weekly wrapup", Article.Series.EconomyWrapup },
+						{ "taliesinevitel"       , Article.Series.TaliesinEvitel },
+						{ "taliesin-evitel"      , Article.Series.TaliesinEvitel },
+						{ "taliesin evitel"      , Article.Series.TaliesinEvitel },
+						{ "taliesin&evitel"      , Article.Series.TaliesinEvitel },
+						{ "taliesin & evitel"    , Article.Series.TaliesinEvitel },
+						{ "taliesin+evitel"      , Article.Series.TaliesinEvitel },
+						{ "taliesin + evitel"    , Article.Series.TaliesinEvitel },
+						{ "taliesinandevitel"    , Article.Series.TaliesinEvitel },
+						{ "taliesin-and-evitel"  , Article.Series.TaliesinEvitel },
+						{ "taliesin and evitel"  , Article.Series.TaliesinEvitel },
+						{ "taliesin"             , Article.Series.TaliesinEvitel },
+						{ "evitel"               , Article.Series.TaliesinEvitel },
+						{ "t&e"                  , Article.Series.TaliesinEvitel },
+						{ "t+e"                  , Article.Series.TaliesinEvitel },
+					};
+				Article.Series seriesUnfilter = strToSeriesUnfilter[arg.ToLower()];
+				guildData[guild].settings.doShowSeries[seriesUnfilter] = true;
+				Save();
+				output = "Now showing **" + seriesUnfilter.ToString() + "** posts in digests." + "\n";
+				break;
+			default:
+				output = "Command not recognized." + "\n";
 				break;
 			}
 
