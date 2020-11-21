@@ -290,6 +290,7 @@ namespace WowheadDigest {
 			foreach(Article article in articles) {
 				writer_articles.WriteLine(article.ToString());
 			}
+			writer_articles.WriteLine();
 			writer_articles.Close();
 
 			log.Info("Data saved.", 1);
