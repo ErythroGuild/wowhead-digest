@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 using DSharpPlus;
 
-namespace wowhead_digest {
+namespace WowheadDigest {
 	class GuildData {
 		public Settings settings;
 		public List<Digest> digests;

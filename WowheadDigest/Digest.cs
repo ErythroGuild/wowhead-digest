@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 using DSharpPlus;
 using DSharpPlus.Entities;
 
-using static wowhead_digest.Article;
+using static WowheadDigest.Article;
 
-namespace wowhead_digest {
+namespace WowheadDigest {
 	class Digest {
 		public class DigestTimeComparer : IComparer<Digest> {
 			public int Compare(Digest x, Digest y) {

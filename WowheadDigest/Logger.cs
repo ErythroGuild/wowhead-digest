@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace wowhead_digest {
+namespace WowheadDigest {
 	class Logger {
 		public enum Type {
 			Debug	= 0,

@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 using DSharpPlus;
 using DSharpPlus.Entities;
 
-using static wowhead_digest.Article;
+using static WowheadDigest.Article;
 
-namespace wowhead_digest {
+namespace WowheadDigest {
 	class Settings {
 		public enum PostFrequency { Daily, Weekly }
 

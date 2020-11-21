@@ -4,7 +4,7 @@ using System.Text.RegularExpressions;
 
 using HtmlAgilityPack;
 
-namespace wowhead_digest {
+namespace WowheadDigest {
 	class Article {
 		public class ArticleTimeComparer : IComparer<Article> {
 			public int Compare(Article x, Article y) {

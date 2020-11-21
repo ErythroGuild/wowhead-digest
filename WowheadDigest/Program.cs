@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using DSharpPlus;
 using DSharpPlus.Entities;
 
-namespace wowhead_digest {
+namespace WowheadDigest {
 	class Program {
 		static readonly Logger log = new Logger();
 		static DiscordClient discord = null;
@@ -271,11 +271,11 @@ namespace wowhead_digest {
 			switch (cmd) {
 			case str_cmd_listSettings:
 				output = "**<" + guild.Name + "> Settings**" + "\n";
-				output += "\u2003" + "News Channel: " +
+				output += "\u2023\u2002" + "News Channel: " +
 					settings.ch_news.Mention + "\n";
-				output += "\u2003" + "Logs Channel: " +
+				output += "\u2023\u2002" + "Logs Channel: " +
 					settings.ch_logs.Mention + "\n";
-				output += "\u2003" + "Posting digests ";
+				output += "\u2023\u2002" + "Posting digests ";
 				switch (settings.postFrequency) {
 				case Settings.PostFrequency.Daily:
 					output += "*daily*." + "\n";
@@ -284,7 +284,7 @@ namespace wowhead_digest {
 					output += "*weekly*." + "\n";
 					break;
 				}
-				output += "\u2003" + "Spoiler post titles are ";
+				output += "\u2023\u2002" + "Spoiler post titles are ";
 				switch (settings.doCensorSpoilers) {
 				case true:
 					output += "*hidden*." + "\n";
@@ -293,7 +293,7 @@ namespace wowhead_digest {
 					output += "*shown*." + "\n";
 					break;
 				}
-				output += "\u2003";
+				output += "\u2023\u2002";
 				switch (settings.doDetectSpoilers) {
 				case true:
 					output += "Will try to automatically detect spoilers." + "\n";
@@ -307,14 +307,13 @@ namespace wowhead_digest {
 				Dictionary<Article.Category, bool> doShowCategory = settings.doShowCategory;
 				output = "**<" + guild.Name + "> Category Filters**" + "\n";
 				foreach(Article.Category category in doShowCategory.Keys) {
-					output += "\u2003";
 					switch (doShowCategory[category]) {
 					case true:
-						output += ":white_check_mark: " +
+						output += ":white_check_mark:\u2002" +
 							category.ToString() + "\n";
 						break;
 					case false:
-						output += ":no_entry_sign: ~~" +
+						output += ":no_entry_sign:\u2002~~" +
 							category.ToString() + "~~" + "\n";
 						break;
 					}
@@ -324,14 +323,13 @@ namespace wowhead_digest {
 				Dictionary<Article.Series, bool> doShowSeries = settings.doShowSeries;
 				output = "**<" + guild.Name + "> Series Filters**" + "\n";
 				foreach (Article.Series series in doShowSeries.Keys) {
-					output += "\u2003";
 					switch (doShowSeries[series]) {
 					case true:
-						output += ":white_check_mark: " +
+						output += ":white_check_mark:\u2002" +
 							series.ToString() + "\n";
 						break;
 					case false:
-						output += ":no_entry_sign: ~~" +
+						output += ":no_entry_sign:\u2002~~" +
 							series.ToString() + "~~" + "\n";
 						break;
 					}
