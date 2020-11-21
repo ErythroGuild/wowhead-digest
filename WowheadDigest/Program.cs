@@ -271,6 +271,7 @@ namespace WowheadDigest {
 
 		static void Save() {
 			log.Info("Saving data...");
+
 			StreamWriter writer_settings = new StreamWriter(path_settings);
 			StreamWriter writer_digests = new StreamWriter(path_digests);
 			foreach (DiscordGuild guild in guildData.Keys) {
@@ -284,6 +285,13 @@ namespace WowheadDigest {
 			}
 			writer_settings.Close();
 			writer_digests.Close();
+
+			StreamWriter writer_articles = new StreamWriter(path_articles);
+			foreach(Article article in articles) {
+				writer_articles.WriteLine(article.ToString());
+			}
+			writer_articles.Close();
+
 			log.Info("Data saved.", 1);
 		}
 
