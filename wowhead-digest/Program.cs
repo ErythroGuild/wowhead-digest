@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
@@ -17,6 +17,7 @@ namespace wowhead_digest {
 
 		const string path_token    = @"token.txt";
 		const string path_settings = @"settings.txt";
+		const string path_digests  = @"digests.txt";
 
 		const ulong id_wh_wowhead = 779070312561770528;
 		const ulong id_ch_ingest = 777935219193020426;	// <Erythro> - #ingest
