@@ -255,8 +255,16 @@ namespace wowhead_digest {
 			const string str_cmd_setNews			= "set-news";
 			const string str_cmd_setLogs			= "set-logs";
 			const string str_cmd_setFreq			= "set-freq";
-			const string str_cmd_setDetectSpoilers	= "set-auto-spoilers";
 			const string str_cmd_setCensorSpoilers	= "set-censor-spoilers";
+			const string str_cmd_setDetectSpoilers	= "set-detect-spoilers";
+			const string str_cmd_filterCategory		= "filter-category";
+			const string str_cmd_unfilterCategory	= "unfilter-category";
+			const string str_cmd_filterSeries		= "filter-series";
+			const string str_cmd_unfilterSeries		= "unfilter-series";
+			const string str_cmd_hide		= "hide";
+			const string str_cmd_show		= "show";
+			const string str_cmd_spoiler	= "spoiler";
+			const string str_cmd_unspoiler	= "unspoiler";
 
 			string output = "";
 			Settings settings = guildData[guild].settings;
@@ -386,6 +394,58 @@ namespace wowhead_digest {
 				output += "Post frequency set to *" +
 					postFreq.ToString().ToLower() +
 					"*." + "\n";
+				break;
+			case str_cmd_setCensorSpoilers:
+				Dictionary<string, bool> strToCensorSpoilers =
+					new Dictionary<string, bool> {
+						{ "true" , true },
+						{ "t"    , true },
+						{ "yes"  , true },
+						{ "y"    , true },
+						{ "on"   , true },
+						{ "false", false },
+						{ "f"    , false },
+						{ "no"   , false },
+						{ "n"    , false },
+						{ "off"  , false },
+					};
+				bool doCensorSpoilers = strToCensorSpoilers[arg.ToLower()];
+				guildData[guild].settings.doCensorSpoilers = doCensorSpoilers;
+				Save();
+				switch (doCensorSpoilers) {
+				case true:
+					output += "Spoiler post titles are now being *hidden*." + "\n";
+					break;
+				case false:
+					output += "Spoiler post titles are now being *shown*." + "\n";
+					break;
+				}
+				break;
+			case str_cmd_setDetectSpoilers:
+				Dictionary<string, bool> strToDetectSpoilers =
+					new Dictionary<string, bool> {
+						{ "true" , true },
+						{ "t"    , true },
+						{ "yes"  , true },
+						{ "y"    , true },
+						{ "on"   , true },
+						{ "false", false },
+						{ "f"    , false },
+						{ "no"   , false },
+						{ "n"    , false },
+						{ "off"  , false },
+					};
+				bool doDetectSpoilers = strToDetectSpoilers[arg.ToLower()];
+				guildData[guild].settings.doDetectSpoilers = doDetectSpoilers;
+				Save();
+				switch (doDetectSpoilers) {
+				case true:
+					output += "Will now try to automatically detect spoilers." + "\n";
+					break;
+				case false:
+					output += "Spoilers will need to be manually marked." + "\n";
+					break;
+				}
 				break;
 			}
 
