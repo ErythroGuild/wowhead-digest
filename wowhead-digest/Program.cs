@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
@@ -78,7 +78,7 @@ namespace wowhead_digest {
 					DiscordGuild guild =
 						await discord.GetGuildAsync(Convert.ToUInt64(guild_id));
 					Settings settings =
-						await Settings.Load(data[guild_id], ref discord);
+						await Settings.Load(data[guild_id], discord);
 				}
 			};
 
