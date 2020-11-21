@@ -648,6 +648,70 @@ namespace WowheadDigest {
 				Save();
 				output = "Now showing **" + seriesUnfilter.ToString() + "** posts in digests." + "\n";
 				break;
+			case str_cmd_hide:
+				if (!Regex.IsMatch(arg, @"^\d+$")) {
+					arg = Article.UrlToId(arg);
+				}
+				Article articleHide = new Article(arg, DateTime.Now);	// datetime doesn't matter
+				if (articles.Contains(articleHide)) {
+					articles.TryGetValue(articleHide, out articleHide);
+					guildData[guild].settings.articles_hidden.Add(articleHide);
+					if (settings.articles_shown.Contains(articleHide))
+						guildData[guild].settings.articles_shown.Remove(articleHide);
+					Save();
+					output = ":no_entry_sign: Article hidden: <" + articleHide.url + ">" + "\n";
+				} else {
+					output = "That article isn't being tracked." + "\n";
+				}
+				break;
+			case str_cmd_show:
+				if (!Regex.IsMatch(arg, @"^\d+$")) {
+					arg = Article.UrlToId(arg);
+				}
+				Article articleShow = new Article(arg, DateTime.Now);   // datetime doesn't matter
+				if (articles.Contains(articleShow)) {
+					articles.TryGetValue(articleShow, out articleShow);
+					guildData[guild].settings.articles_shown.Add(articleShow);
+					if (settings.articles_hidden.Contains(articleShow))
+						guildData[guild].settings.articles_hidden.Remove(articleShow);
+					Save();
+					output = ":white_check_mark: Article shown: <" + articleShow.url + ">" + "\n";
+				} else {
+					output = "That article isn't being tracked." + "\n";
+				}
+				break;
+			case str_cmd_spoiler:
+				if (!Regex.IsMatch(arg, @"^\d+$")) {
+					arg = Article.UrlToId(arg);
+				}
+				Article articleSpoiler = new Article(arg, DateTime.Now);   // datetime doesn't matter
+				if (articles.Contains(articleSpoiler)) {
+					articles.TryGetValue(articleSpoiler, out articleSpoiler);
+					guildData[guild].settings.articles_spoilered.Add(articleSpoiler);
+					if (settings.articles_unspoilered.Contains(articleSpoiler))
+						guildData[guild].settings.articles_unspoilered.Remove(articleSpoiler);
+					Save();
+					output = ":see_no_evil: Article marked as spoiler: <" + articleSpoiler.url + ">" + "\n";
+				} else {
+					output = "That article isn't being tracked." + "\n";
+				}
+				break;
+			case str_cmd_unspoiler:
+				if (!Regex.IsMatch(arg, @"^\d+$")) {
+					arg = Article.UrlToId(arg);
+				}
+				Article articleUnspoiler = new Article(arg, DateTime.Now);   // datetime doesn't matter
+				if (articles.Contains(articleUnspoiler)) {
+					articles.TryGetValue(articleUnspoiler, out articleUnspoiler);
+					guildData[guild].settings.articles_spoilered.Add(articleUnspoiler);
+					if (settings.articles_unspoilered.Contains(articleUnspoiler))
+						guildData[guild].settings.articles_unspoilered.Remove(articleUnspoiler);
+					Save();
+					output = ":monkey_face: Article marked as spoiler-free: <" + articleUnspoiler.url + ">" + "\n";
+				} else {
+					output = "That article isn't being tracked." + "\n";
+				}
+				break;
 			default:
 				output = "Command not recognized." + "\n" +
 					"command: `" + cmd + "`" + "\n";
