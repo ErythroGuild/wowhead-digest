@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
@@ -187,7 +187,7 @@ namespace wowhead_digest {
 			List<string> EntriesToStrings<T>(Dictionary<T, bool> entries) {
 				List<string> strings = new List<string>();
 				foreach (T key in entries.Keys) {
-					string entry = key.ToString() + delim_list + entries[key].ToString();
+					string entry = key.ToString() + delim_key + entries[key].ToString();
 					strings.Add(entry);
 				}
 				return strings;
