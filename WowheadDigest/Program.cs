@@ -634,7 +634,10 @@ namespace WowheadDigest {
 				output = "Now showing **" + seriesUnfilter.ToString() + "** posts in digests." + "\n";
 				break;
 			default:
-				output = "Command not recognized." + "\n";
+				output = "Command not recognized." + "\n" +
+					"command: `" + cmd + "`" + "\n";
+				if (arg != "")
+					output += "parameter(s): `" + arg + "`" + "\n";
 				break;
 			}
 
