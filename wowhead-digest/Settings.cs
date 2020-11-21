@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
@@ -16,7 +16,8 @@ namespace wowhead_digest {
 		public DiscordChannel ch_logs;
 
 		public PostFrequency postFrequency;
-		public bool doShowAutoSpoilers;
+		public bool doCensorSpoilers;
+		public bool doDetectSpoilers;
 		public Dictionary<Category, bool> doShowCategory;
 		public Dictionary<Series, bool> doShowSeries;
 
@@ -31,7 +32,8 @@ namespace wowhead_digest {
 		private const string key_ch_news			= "ch_news";
 		private const string key_ch_logs			= "ch_logs";
 		private const string key_postFrequency		= "post_freq";
-		private const string key_doShowAutoSpoilers	= "do_show_auto_spoilers";
+		private const string key_doCensorSpoilers	= "do_censor_spoilers";
+		private const string key_doDetectSpoilers	= "do_detect_spoilers";
 		private const string key_doShowCategory		= "do_show_category";
 		private const string key_doShowSeries		= "do_show_series";
 		private const string key_articles_hidden	= "articles_hidden";
@@ -44,7 +46,8 @@ namespace wowhead_digest {
 				ch_news = null,
 				ch_logs = null,
 				postFrequency = PostFrequency.Daily,
-				doShowAutoSpoilers = false,
+				doCensorSpoilers = true,
+				doDetectSpoilers = true,
 				doShowCategory = {
 					{ Category.Live,		true  },
 					{ Category.PTR,			true  },
@@ -72,7 +75,10 @@ namespace wowhead_digest {
 		private static List<string> ParseList(string data) {
 			// must consist of a `[...]` list if  this function is called
 			data = data[1..^1];
-			return new List<string>(data.Split(delim_list));
+			if (data == "")
+				return new List<string>();
+			else
+				return new List<string>(data.Split(delim_list));
 		}
 
 		private static void AddKey(ref string data, string key, string val) {
@@ -144,8 +150,11 @@ namespace wowhead_digest {
 					s.postFrequency =
 						(PostFrequency) Enum.Parse(typeof(PostFrequency), val);
 					break;
-				case key_doShowAutoSpoilers:
-					s.doShowAutoSpoilers = Convert.ToBoolean(val);
+				case key_doCensorSpoilers:
+					s.doCensorSpoilers = Convert.ToBoolean(val);
+					break;
+				case key_doDetectSpoilers:
+					s.doDetectSpoilers = Convert.ToBoolean(val);
 					break;
 
 				case key_doShowCategory:
@@ -182,7 +191,8 @@ namespace wowhead_digest {
 			AddVal(key_ch_news, ch_news.Id.ToString());
 			AddVal(key_ch_logs, ch_logs.Id.ToString());
 			AddVal(key_postFrequency, postFrequency.ToString());
-			AddVal(key_doShowAutoSpoilers, doShowAutoSpoilers.ToString());
+			AddVal(key_doCensorSpoilers, doCensorSpoilers.ToString());
+			AddVal(key_doDetectSpoilers, doDetectSpoilers.ToString());
 
 			List<string> EntriesToStrings<T>(Dictionary<T, bool> entries) {
 				List<string> strings = new List<string>();
@@ -194,7 +204,7 @@ namespace wowhead_digest {
 			}
 
 			AddVals(key_doShowCategory, EntriesToStrings(doShowCategory));
-			AddVals(key_doShowCategory, EntriesToStrings(doShowSeries));
+			AddVals(key_doShowSeries, EntriesToStrings(doShowSeries));
 
 			List<string> ArticlesToStrings(ISet<Article> articles) {
 				List<string> data = new List<string>();
