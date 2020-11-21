@@ -22,8 +22,10 @@ namespace WowheadDigest {
 
 		const ulong id_u_self = 779053723489140759;
 		const ulong id_wh_wowhead = 779070312561770528;
-		const ulong id_ch_ingest = 777935219193020426;	// <Erythro> - #ingest
-		const ulong id_ch_debug = 489274692255875091;	// <Erythro> - #test
+		const ulong id_ch_ingest = 777935219193020426;  // <Erythro> - #ingest
+#if DEBUG
+		const ulong id_ch_debug = 489274692255875091;   // <Erythro> - #test
+#endif
 
 		public static ref readonly Logger GetLogger() { return ref log; }
 

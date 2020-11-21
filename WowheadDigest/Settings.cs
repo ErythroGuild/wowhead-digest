@@ -141,9 +141,17 @@ namespace WowheadDigest {
 				string val = data_buf[key];
 				switch (key) {
 				case key_ch_news:
+					if (val == "null") {
+						s.ch_news = null;
+						break;
+					}
 					s.ch_news = await client.GetChannelAsync(Convert.ToUInt64(val));
 					break;
 				case key_ch_logs:
+					if (val == "null") {
+						s.ch_logs = null;
+						break;
+					}
 					s.ch_logs = await client.GetChannelAsync(Convert.ToUInt64(val));
 					break;
 				case key_postFrequency:
@@ -188,8 +196,8 @@ namespace WowheadDigest {
 			void AddVal(string key, string val) { AddKey(ref data, key, val); }
 			void AddVals(string key, List<string> vals) { AddKey(ref data, key, vals); }
 
-			AddVal(key_ch_news, ch_news.Id.ToString());
-			AddVal(key_ch_logs, ch_logs.Id.ToString());
+			AddVal(key_ch_news, ch_news?.Id.ToString() ?? "null");
+			AddVal(key_ch_logs, ch_logs?.Id.ToString() ?? "null");
 			AddVal(key_postFrequency, postFrequency.ToString());
 			AddVal(key_doCensorSpoilers, doCensorSpoilers.ToString());
 			AddVal(key_doDetectSpoilers, doDetectSpoilers.ToString());
