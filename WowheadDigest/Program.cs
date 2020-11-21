@@ -100,7 +100,7 @@ namespace WowheadDigest {
 						}
 					}
 				}
-				log.Info("Guild settings loaded.");
+				log.Info("  Guild settings loaded.");
 
 				// load guild digests
 				log.Info("Loading guilds' saved digests...");
@@ -129,7 +129,7 @@ namespace WowheadDigest {
 						}
 					}
 				}
-				log.Info("Saved digests loaded.");
+				log.Info("  Saved digests loaded.");
 
 				// TODO: handle exceptions
 				// parse guild settings
@@ -152,7 +152,7 @@ namespace WowheadDigest {
 						guildData_i.digests = new List<Digest>();
 					}
 				}
-				log.Info("Guild settings parsed.");
+				log.Info("  Guild settings parsed.");
 
 				log.Info("Writing back loaded data:");
 				Save();
