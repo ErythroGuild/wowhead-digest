@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
@@ -34,6 +34,9 @@ namespace WowheadDigest {
 		public static ref readonly Logger GetLogger() { return ref log; }
 
 		static void Main() {
+#if DEBUG
+			Console.WriteLine("========DEBUG MODE ON========");
+#endif
 			const string title_ascii =
 				" █   █ ▄▀▄ █   █ █▄█ ██▀ ▄▀▄ █▀▄   █▀▄ █ ▄▀  ██▀ ▄▀▀ ▀█▀ " + "\n" +
 				" ▀▄▀▄▀ ▀▄▀ ▀▄▀▄▀ █ █ █▄▄ █▀█ █▄▀   █▄▀ █ ▀▄█ █▄▄ ▄██  █  " + "\n";
@@ -55,7 +58,7 @@ namespace WowheadDigest {
 				log.Info("Connected to discord.");
 
 				str_mention = (await discord.GetUserAsync(id_u_self)).Mention;
-				log.Debug("  Self mention string: " + str_mention);
+				log.Debug("Self mention string: " + str_mention, 1);
 
 				log.Info("Loading article database...");
 				StreamReader reader = new StreamReader(path_articles);
@@ -67,7 +70,7 @@ namespace WowheadDigest {
 					articles.Add(article);
 				}
 				log.Info("Article database loaded.");
-				log.Debug("  " + articles.Count.ToString() + " item(s) loaded.");
+				log.Debug(articles.Count.ToString() + " item(s) loaded.", 1);
 			};
 
 			discord.GuildDownloadCompleted += async (s, e) => {
@@ -100,7 +103,7 @@ namespace WowheadDigest {
 						}
 					}
 				}
-				log.Info("  Guild settings loaded.");
+				log.Info("Guild settings loaded.", 1);
 
 				// load guild digests
 				log.Info("Loading guilds' saved digests...");
@@ -129,7 +132,7 @@ namespace WowheadDigest {
 						}
 					}
 				}
-				log.Info("  Saved digests loaded.");
+				log.Info("Saved digests loaded.", 1);
 
 				// TODO: handle exceptions
 				// parse guild settings
@@ -156,7 +159,7 @@ namespace WowheadDigest {
 						guildData_i.digests = new List<Digest>();
 					}
 				}
-				log.Info("  Guild settings parsed.");
+				log.Info("Guild settings parsed.", 1);
 
 				log.Info("Writing back loaded data:");
 				Save();
@@ -167,12 +170,12 @@ namespace WowheadDigest {
 					DiscordMember author = await e.Guild.GetMemberAsync(e.Message.Author.Id);
 					if (!author.PermissionsIn(e.Channel).HasPermission(Permissions.ManageGuild)) {
 						log.Warning("Command attempted (insufficient permissions).");
-						log.Debug("  user: " + author.DisplayName);
-						log.Debug("  cmd : " + e.Message.Content);
+						log.Debug("user: " + author.DisplayName, 1);
+						log.Debug("cmd : " + e.Message.Content, 1);
 						return;
 					}
 
-					log.Info("Command detected.");
+					log.Info("Command detected.", 1);
 					log.Debug(e.Message.Content);
 					string message = e.Message.Content.Substring(str_mention.Length + 1);
 					string[] split = message.Split(' ', 2);
@@ -184,8 +187,8 @@ namespace WowheadDigest {
 						cmd = message.TrimStart();
 						arg = "";
 					}
-					log.Debug("  cmd: " + cmd);
-					log.Debug("  arg: " + arg);
+					log.Debug("cmd: " + cmd, 2);
+					log.Debug("arg: " + arg, 2);
 					// TODO: make this synchronous...
 					string reply = ParseCommand(cmd, arg, e);
 					DiscordChannel ch_reply = e.Channel;
@@ -202,7 +205,7 @@ namespace WowheadDigest {
 				if (e.Channel.Id != id_ch_ingest)
 					return;
 
-				log.Info("Received Wowhead news.", 1);
+				log.Info(">> Received Wowhead news.");
 				foreach (DiscordEmbed embed in e.Message.Embeds) {
 					string url = embed.Url.AbsoluteUri;
 					string id = Article.UrlToId(url);
@@ -211,8 +214,8 @@ namespace WowheadDigest {
 						continue;
 					articles.Add(article);
 					log.Info("New article posted!");
-					log.Debug("  id: " + id);
-					log.Debug("  time: " + article.time.ToString("T"));
+					log.Debug("id: " + id, 1);
+					log.Debug("time: " + article.time.ToString("T"), 1);
 
 					log.Info("Propagating article.");
 					foreach (GuildData guildData_i in guildData.Values) {
@@ -281,7 +284,7 @@ namespace WowheadDigest {
 			}
 			writer_settings.Close();
 			writer_digests.Close();
-			log.Info("Data saved.");
+			log.Info("Data saved.", 1);
 		}
 
 		static string ParseCommand(string cmd, string arg, MessageCreateEventArgs e) {
