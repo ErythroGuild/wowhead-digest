@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
@@ -142,6 +142,14 @@ namespace WowheadDigest {
 
 			discord.MessageCreated += async (s, e) => {
 				if (e.Message.Content.StartsWith(str_mention)) {
+					DiscordMember author = await e.Guild.GetMemberAsync(e.Message.Author.Id);
+					if (!author.PermissionsIn(e.Channel).HasPermission(Permissions.ManageGuild)) {
+						log.Warning("Command attempted (insufficient permissions).");
+						log.Debug("  user: " + author.DisplayName);
+						log.Debug("  cmd : " + e.Message.Content);
+						return;
+					}
+
 					log.Info("Command detected.");
 					log.Debug(e.Message.Content);
 					string message = e.Message.Content.Substring(str_mention.Length + 1);
