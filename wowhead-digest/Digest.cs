@@ -72,6 +72,8 @@ namespace wowhead_digest {
 					digest.articles_spoiler.IntersectWith(digest.articles);
 					digest.articles_unspoiler = articles_unspoilered;
 					digest.articles_unspoiler.IntersectWith(digest.articles);
+
+					break;
 				}
 			}
 
