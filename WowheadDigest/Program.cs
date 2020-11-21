@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
@@ -140,7 +140,11 @@ namespace WowheadDigest {
 						await Settings.Load(data_settings[guild], discord);
 					guildData_i.digests = new List<Digest>();
 					if (data_digests.ContainsKey(guild)) {
-						await guildData_i.ImportDigests(data_digests[guild], discord);
+						await guildData_i.ImportDigests(
+							data_digests[guild],
+							guildData_i.settings,
+							discord
+						);
 					}
 					guildData.Add(guild, guildData_i);
 				}
@@ -212,8 +216,9 @@ namespace WowheadDigest {
 
 					log.Info("Propagating article.");
 					foreach (GuildData guildData_i in guildData.Values) {
-						guildData_i.Push(article);
+						await guildData_i.Push(article, discord);
 					}
+					Save();
 				}
 			};
 

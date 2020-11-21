@@ -41,9 +41,8 @@ namespace WowheadDigest {
 
 		public static async Task<Digest> FromString(
 			string data,
-			DiscordClient client,
-			HashSet<Article> articles_spoilered,
-			HashSet<Article> articles_unspoilered
+			Settings settings,
+			DiscordClient client
 		) {
 			Digest digest = new Digest();
 
@@ -68,10 +67,16 @@ namespace WowheadDigest {
 						digest.articles.Add(Article.FromString(line));
 					}
 
-					digest.articles_spoiler = articles_spoilered;
-					digest.articles_spoiler.IntersectWith(digest.articles);
-					digest.articles_unspoiler = articles_unspoilered;
-					digest.articles_unspoiler.IntersectWith(digest.articles);
+					if (settings.doCensorSpoilers) {
+						foreach (Article article in digest.articles) {
+							if (settings.doDetectSpoilers && article.hasSpoiler)
+								digest.articles_spoiler.Add(article);
+							if (settings.articles_unspoilered.Contains(article))
+								digest.articles_spoiler.Remove(article);
+							if (settings.articles_spoilered.Contains(article))
+								digest.articles_spoiler.Add(article);
+						}
+					}
 
 					break;
 				}
@@ -88,7 +93,6 @@ namespace WowheadDigest {
 			new SortedSet<Article>(new ArticleTimeComparer());
 
 		public HashSet<Article> articles_spoiler = new HashSet<Article>();
-		public HashSet<Article> articles_unspoiler = new HashSet<Article>();
 
 		public override string ToString() {
 			string data = "";
@@ -101,6 +105,10 @@ namespace WowheadDigest {
 				data += "\t" + article.ToString() + "\n";
 			}
 			return data;
+		}
+
+		public bool IsFull() {
+			return articles.Count >= max_articles;
 		}
 
 		public DiscordEmbed GetEmbed() {
@@ -121,10 +129,7 @@ namespace WowheadDigest {
 					isFirstArticle = false;
 
 				content += bullets[article.category] + " [";
-				if (article.hasSpoiler &&
-					!articles_unspoiler.Contains(article) ||
-					articles_spoiler.Contains(article)
-				) {
+				if (articles_spoiler.Contains(article)) {
 					content += "--**SPOILER**--";
 				} else {
 					content += article.title;
