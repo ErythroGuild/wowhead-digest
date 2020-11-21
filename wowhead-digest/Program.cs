@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
@@ -130,6 +130,22 @@ namespace wowhead_digest {
 					}
 				}
 				log.Info("Guild settings parsed.");
+
+				log.Info("Writing back loaded data...");
+				StreamWriter writer_settings = new StreamWriter(path_settings);
+				StreamWriter writer_digests = new StreamWriter(path_digests);
+				foreach (DiscordGuild guild in guildData.Keys) {
+					string guild_str = "GUILD - " + guild.Id.ToString();
+					writer_settings.WriteLine(guild_str);
+					writer_settings.Write(guildData[guild].settings.Save());
+					writer_settings.WriteLine();
+					writer_digests.WriteLine(guild_str);
+					writer_digests.Write(guildData[guild].digests.ToString());
+					writer_digests.WriteLine();
+				}
+				writer_settings.Close();
+				writer_digests.Close();
+				log.Info("Data written.");
 			};
 
 			discord.MessageCreated += async (s, e) => {
