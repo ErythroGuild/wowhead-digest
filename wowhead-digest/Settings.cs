@@ -40,7 +40,8 @@ namespace wowhead_digest {
 		private const string key_articles_unspoilered = "articles_unspoilered";
 
 		private static List<string> ParseList(string data) {
-			data = data.TrimStart('[').TrimEnd(']');
+			// must consist of a `[...]` list if  this function is called
+			data = data[1..^1];
 			return new List<string>(data.Split(delim_list));
 		}
 
