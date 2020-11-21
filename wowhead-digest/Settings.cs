@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
@@ -20,8 +20,8 @@ namespace wowhead_digest {
 		public Dictionary<Category, bool> doShowCategory;
 		public Dictionary<Series, bool> doShowSeries;
 
-		public HashSet<Article> articles_shown;
 		public HashSet<Article> articles_hidden;
+		public HashSet<Article> articles_shown;
 		public HashSet<Article> articles_spoilered;
 		public HashSet<Article> articles_unspoilered;
 
@@ -34,8 +34,8 @@ namespace wowhead_digest {
 		private const string key_doShowAutoSpoilers	= "do_show_auto_spoilers";
 		private const string key_doShowCategory		= "do_show_category";
 		private const string key_doShowSeries		= "do_show_series";
-		private const string key_articles_shown		= "articles_shown";
 		private const string key_articles_hidden	= "articles_hidden";
+		private const string key_articles_shown		= "articles_shown";
 		private const string key_articles_spoilered	= "articles_spoilered";
 		private const string key_articles_unspoilered = "articles_unspoilered";
 
@@ -155,11 +155,11 @@ namespace wowhead_digest {
 					s.doShowSeries = StringsToEntries<Series>(ParseList(val));
 					break;
 
-				case key_articles_shown:
-					s.articles_shown = StringsToArticles(ParseList(val));
-					break;
 				case key_articles_hidden:
 					s.articles_hidden = StringsToArticles(ParseList(val));
+					break;
+				case key_articles_shown:
+					s.articles_shown = StringsToArticles(ParseList(val));
 					break;
 				case key_articles_spoilered:
 					s.articles_spoilered = StringsToArticles(ParseList(val));
@@ -204,8 +204,8 @@ namespace wowhead_digest {
 				return data;
 			}
 
-			AddVals(key_articles_shown, ArticlesToStrings(articles_shown));
 			AddVals(key_articles_hidden, ArticlesToStrings(articles_hidden));
+			AddVals(key_articles_shown, ArticlesToStrings(articles_shown));
 			AddVals(key_articles_spoilered, ArticlesToStrings(articles_spoilered));
 			AddVals(key_articles_unspoilered, ArticlesToStrings(articles_unspoilered));
 
