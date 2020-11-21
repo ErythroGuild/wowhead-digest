@@ -12,7 +12,7 @@ namespace wowhead_digest {
 		public async Task ImportDigests(string data, DiscordClient client) {
 			digests = new List<Digest>();
 
-			StreamReader reader = new StreamReader(data);
+			StringReader reader = new StringReader(data);
 			while (reader.Peek() != -1) {
 				string line = reader.ReadLine();
 				if (line.StartsWith("- ")) {
