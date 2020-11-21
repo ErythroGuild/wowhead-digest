@@ -14,7 +14,6 @@ namespace wowhead_digest {
 
 		static Dictionary<DiscordGuild, GuildData> guildData;
 
-
 		const string path_token    = @"token.txt";
 		const string path_settings = @"settings.txt";
 		const string path_digests  = @"digests.txt";
@@ -43,43 +42,94 @@ namespace wowhead_digest {
 				return;
 			}
 
-			discord.Ready += async (s, e) => {
+			discord.Ready += (s, e) => {
 				log.Info("Connected to discord.");
+				return Task.CompletedTask;
 			};
 
 			discord.GuildDownloadCompleted += async (s, e) => {
 				log.Info("Guild streaming completed.");
 
 				// load guild settings
-				Dictionary<string, string> data = new Dictionary<string, string>();
-				StreamReader reader = new StreamReader(path_settings);
-				while (reader.Peek() != -1) {
-					string line = reader.ReadLine();
-					if (line == "")
-						continue;
-					if (line.StartsWith("GUILD - ")) {
-						string guild = Regex.Match(line, @"^GUILD - (\d+)$").Groups[1].Value;
-						string settings = "";
-						while (reader.Peek() != -1) {
-							line = reader.ReadLine();
-							if (line.StartsWith("\t")) {
-								settings += line + "\n";
-							} else {
-								break;
+				log.Info("Loading guild settings...");
+				Dictionary<DiscordGuild, string> data_settings =
+					new Dictionary<DiscordGuild, string>();
+				using (StreamReader reader = new StreamReader(path_settings)) {
+					while (reader.Peek() != -1) {
+						string line = reader.ReadLine();
+						if (line == "")
+							continue;
+						if (line.StartsWith("GUILD - ")) {
+							string guild_str = Regex.Match(line, @"^GUILD - (\d+)$").Groups[1].Value;
+							DiscordGuild guild =
+								await discord.GetGuildAsync(Convert.ToUInt64(guild_str));
+
+							string settings = "";
+							while (reader.Peek() != -1) {
+								line = reader.ReadLine();
+								if (line.StartsWith("\t")) {
+									settings += line + "\n";
+								} else {
+									break;
+								}
 							}
+							data_settings.Add(guild, settings);
 						}
-						data.Add(guild, settings);
 					}
 				}
+				log.Info("Guild settings loaded.");
+
+				// load guild digests
+				log.Info("Loading guilds' saved digests...");
+				Dictionary<DiscordGuild, string> data_digests =
+					new Dictionary<DiscordGuild, string>();
+				using (StreamReader reader = new StreamReader(path_digests)) {
+					while (reader.Peek() != -1) {
+						string line = reader.ReadLine();
+						if (line == "")
+							continue;
+						if (line.StartsWith("GUILD - ")) {
+							string guild_str = Regex.Match(line, @"^GUILD - (\d+)$").Groups[1].Value;
+							DiscordGuild guild =
+								await discord.GetGuildAsync(Convert.ToUInt64(guild_str));
+
+							string digests = "";
+							while (reader.Peek() != -1) {
+								line = reader.ReadLine();
+								if (line.StartsWith("\t")) {
+									digests += line + "\n";
+								} else {
+									break;
+								}
+							}
+							data_digests.Add(guild, digests);
+						}
+					}
+				}
+				log.Info("Saved digests loaded.");
 
 				// TODO: handle exceptions
 				// parse guild settings
-				foreach (string guild_id in data.Keys) {
-					DiscordGuild guild =
-						await discord.GetGuildAsync(Convert.ToUInt64(guild_id));
-					Settings settings =
-						await Settings.Load(data[guild_id], discord);
+				log.Info("Parsing guild settings...");
+				foreach (DiscordGuild guild in data_settings.Keys) {
+					GuildData guildData_i = new GuildData();
+					guildData_i.settings =
+						await Settings.Load(data_settings[guild], discord);
+					guildData_i.digests = new List<Digest>();
+					if (data_digests.ContainsKey(guild)) {
+						await guildData_i.ImportDigests(data_digests[guild], discord);
+					}
+					guildData.Add(guild, guildData_i);
 				}
+				// add defaults settings if guild without saved settings is found
+				foreach (DiscordGuild guild in discord.Guilds.Values) {
+					if (!guildData.ContainsKey(guild)) {
+						GuildData guildData_i = new GuildData();
+						guildData_i.settings = Settings.Default();
+						guildData_i.digests = new List<Digest>();
+					}
+				}
+				log.Info("Guild settings parsed.");
 			};
 
 			discord.MessageCreated += async (s, e) => {

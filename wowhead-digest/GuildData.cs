@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using System.Threading.Tasks;
 
 using DSharpPlus;
 
@@ -8,7 +9,7 @@ namespace wowhead_digest {
 		public Settings settings;
 		public List<Digest> digests;
 
-		public async void ImportDigests(string data, DiscordClient client) {
+		public async Task ImportDigests(string data, DiscordClient client) {
 			digests = new List<Digest>();
 
 			StreamReader reader = new StreamReader(data);

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
@@ -38,6 +38,36 @@ namespace wowhead_digest {
 		private const string key_articles_hidden	= "articles_hidden";
 		private const string key_articles_spoilered	= "articles_spoilered";
 		private const string key_articles_unspoilered = "articles_unspoilered";
+
+		public static Settings Default() {
+			return new Settings() {
+				ch_news = null,
+				ch_logs = null,
+				postFrequency = PostFrequency.Daily,
+				doShowAutoSpoilers = false,
+				doShowCategory = {
+					{ Category.Live,		true  },
+					{ Category.PTR,			true  },
+					{ Category.Beta,		true  },
+					{ Category.Classic,		false },
+					{ Category.Warcraft3,	false },
+					{ Category.Diablo,		false },
+					//{ Category.Overwatch,	false },
+					{ Category.Blizzard,	true  },
+					{ Category.Wowhead,		false },
+				},
+				doShowSeries = {
+					{ Series.Other,				true  },
+					{ Series.WowheadWeekly,		false },
+					{ Series.EconomyWrapup,		false },
+					{ Series.TaliesinEvitel,	false },
+				},
+				articles_hidden = new HashSet<Article>(),
+				articles_shown = new HashSet<Article>(),
+				articles_spoilered = new HashSet<Article>(),
+				articles_unspoilered = new HashSet<Article>()
+			};
+		}
 
 		private static List<string> ParseList(string data) {
 			// must consist of a `[...]` list if  this function is called
