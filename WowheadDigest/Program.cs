@@ -665,6 +665,7 @@ namespace WowheadDigest {
 						guildData[guild].settings.articles_shown.Remove(articleHide);
 					Save();
 					output = ":no_entry_sign: Article hidden: <" + articleHide.url + ">" + "\n";
+					output += "> *" + articleHide.title + "*" + "\n";
 				} else {
 					output = "That article isn't being tracked." + "\n";
 				}
@@ -681,6 +682,7 @@ namespace WowheadDigest {
 						guildData[guild].settings.articles_hidden.Remove(articleShow);
 					Save();
 					output = ":white_check_mark: Article shown: <" + articleShow.url + ">" + "\n";
+					output += "> *" + articleShow.title + "*" + "\n";
 				} else {
 					output = "That article isn't being tracked." + "\n";
 				}
@@ -697,6 +699,7 @@ namespace WowheadDigest {
 						guildData[guild].settings.articles_unspoilered.Remove(articleSpoiler);
 					Save();
 					output = ":see_no_evil: Article marked as spoiler: <" + articleSpoiler.url + ">" + "\n";
+					output += "> ||*" + articleSpoiler.title + "*||" + "\n";
 				} else {
 					output = "That article isn't being tracked." + "\n";
 				}
@@ -713,6 +716,7 @@ namespace WowheadDigest {
 						guildData[guild].settings.articles_unspoilered.Remove(articleUnspoiler);
 					Save();
 					output = ":monkey_face: Article marked as spoiler-free: <" + articleUnspoiler.url + ">" + "\n";
+					output += "> *" + articleUnspoiler.title + "*" + "\n";
 				} else {
 					output = "That article isn't being tracked." + "\n";
 				}
