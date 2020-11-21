@@ -41,5 +41,9 @@ namespace WowheadDigest {
 			}
 			return data;
 		}
+
+		public void Push(Article article) {
+
+		}
 	}
 }

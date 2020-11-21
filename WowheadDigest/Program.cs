@@ -202,13 +202,18 @@ namespace WowheadDigest {
 				foreach (DiscordEmbed embed in e.Message.Embeds) {
 					string url = embed.Url.AbsoluteUri;
 					string id = Article.UrlToId(url);
-					Article article = new Article(id, DateTime.Now);
-
+					Article article = new Article(id, e.Message.Timestamp.LocalDateTime);
+					if (articles.Contains(article))
+						continue;
+					articles.Add(article);
 					log.Info("New article posted!");
+					log.Debug("  id: " + id);
+					log.Debug("  time: " + article.time.ToString("T"));
 
-					//foreach (DiscordGuild guild in discord.Guilds.Values) {
-					//	guildData[guild].Push(article);
-					//}
+					log.Info("Propagating article.");
+					foreach (GuildData guildData_i in guildData.Values) {
+						guildData_i.Push(article);
+					}
 				}
 			};
 
