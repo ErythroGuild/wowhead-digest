@@ -301,7 +301,7 @@ namespace WowheadDigest {
 
 			// Instantiate discord client.
 			discord = new DiscordClient(new DiscordConfiguration {
-				MinimumLogLevel = Microsoft.Extensions.Logging.LogLevel.Warning,
+				LogTimestampFormat = "hh:mm:ss",
 				Token = token,
 				TokenType = TokenType.Bot
 			});
