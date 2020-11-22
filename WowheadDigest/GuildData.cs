@@ -52,6 +52,26 @@ namespace WowheadDigest {
 				return;
 			}
 
+			// check and notify if article already exists (updating)
+			bool isUpdate = false;
+			foreach (Digest digest in digests) {
+				foreach (Article article_existing in digest.articles) {
+					if (article == article_existing) {
+						isUpdate = true;
+						break;
+					}
+				}
+				if (isUpdate)
+					break;
+			}
+			if (isUpdate) {
+				string msg_update = "Updating article: <" + article.url + ">" + "\n";
+				_ = client.SendMessageAsync(settings.ch_logs, msg_update);
+				DiscordEmbed embed_update = digests[digests.Count - 1].GetEmbed();
+				_ = digests[digests.Count - 1].message.ModifyAsync(null, embed_update);
+				return;
+			}
+
 			// populate list of Digests with initial digest if needed
 			if (digests.Count == 0) {
 				Digest digest = new Digest() {
