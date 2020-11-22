@@ -16,14 +16,21 @@ namespace WowheadDigest {
 			digests = new List<Digest>();
 
 			StringReader reader = new StringReader(data);
+			string line_carry = null;
 			while (reader.Peek() != -1) {
-				string line = reader.ReadLine();
+				string line = line_carry;
+				if (line == null) {
+					line = reader.ReadLine();
+				}
 				if (line.StartsWith("- ")) {
 					string data_digest = line + "\n";
 					while (reader.Peek() != -1) {
 						line = reader.ReadLine();
 						if (line.StartsWith("\t")) {
 							data_digest += line + "\n";
+						} else if (line.StartsWith("- ")) {
+							line_carry = line;
+							break;
 						} else {
 							break;
 						}
@@ -40,7 +47,7 @@ namespace WowheadDigest {
 		public string ExportDigests() {
 			string data = "";
 			foreach (Digest digest in digests) {
-				data += digest.ToString() + "\n";
+				data += digest.ToString();
 			}
 			return data;
 		}
