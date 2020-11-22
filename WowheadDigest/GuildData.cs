@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -47,6 +47,8 @@ namespace WowheadDigest {
 
 		public async Task Push(Article article, DiscordClient client) {
 			if (!ShouldAdd(article)) {
+				string msg_hide = ":no_entry_sign: Filtered out article: " + article.url + "\n";
+				_ = client.SendMessageAsync(settings.ch_logs, msg_hide);
 				return;
 			}
 
@@ -122,9 +124,9 @@ namespace WowheadDigest {
 			if (digests[digests.Count - 1].message == null) {
 				digests[digests.Count - 1].message =
 					await client.SendMessageAsync(settings.ch_news, null, false, embed);
+				// TODO: make asynchronous
 			} else {
-				// TODO: no need to await?
-				await digests[digests.Count - 1].message.ModifyAsync(null, embed);
+				_ = digests[digests.Count - 1].message.ModifyAsync(null, embed);
 			}
 		}
 
