@@ -52,9 +52,39 @@ namespace WowheadDigest {
 			return data;
 		}
 
-		public async Task Push(Article article, DiscordClient client) {
+		public async Task UpdateEmbeds(DiscordClient client) {
+			string msg_log = ":arrows_counterclockwise: Updated all tracked embeds.";
+			_ = client.SendMessageAsync(settings.ch_logs, msg_log);
+			foreach (Digest digest in digests) {
+				DiscordEmbed embed = digest.GetEmbed();
+				await digest.message.ModifyAsync(null, embed);
+				break;
+			}
+		}
+
+		public async Task UpdateEmbed(Digest digest, DiscordClient client) {
+			string msg_log = ":arrows_counterclockwise: Updated embed.";
+			_ = client.SendMessageAsync(settings.ch_logs, msg_log);
+			await digest.message.ModifyAsync(null, digest.GetEmbed());
+		}
+
+		public async Task UpdateEmbed(Article article, DiscordClient client) {
+			foreach (Digest digest in digests) {
+				if (digest.articles.Contains(article)) {
+					string msg_log = ":arrows_counterclockwise: Updated article: <" + article.url + ">" + "\n";
+					msg_log += "> *" + article.title + "*";
+					_ = client.SendMessageAsync(settings.ch_logs, msg_log);
+					DiscordEmbed embed = digest.GetEmbed();
+					await digest.message.ModifyAsync(null, embed);
+					break;
+				}
+			}
+		}
+
+		public async Task Add(Article article, DiscordClient client) {
 			if (!ShouldAdd(article)) {
-				string msg_hide = ":no_entry_sign: Filtered out article: " + article.url + "\n";
+				string msg_hide = ":no_entry_sign: Filtered out article: <" + article.url + ">" + "\n";
+				msg_hide += "> *" + article.title + "*";
 				_ = client.SendMessageAsync(settings.ch_logs, msg_hide);
 				return;
 			}
@@ -73,6 +103,7 @@ namespace WowheadDigest {
 			}
 			if (isUpdate) {
 				string msg_update = "Updating article: <" + article.url + ">" + "\n";
+				msg_update += "> *" + article.title + "*";
 				_ = client.SendMessageAsync(settings.ch_logs, msg_update);
 				DiscordEmbed embed_update = digests[digests.Count - 1].GetEmbed();
 				_ = digests[digests.Count - 1].message.ModifyAsync(null, embed_update);
@@ -144,6 +175,7 @@ namespace WowheadDigest {
 			string msg_log = ":mailbox: Added article: <" + article.url + ">" + "\n";
 			if (digests[digests.Count - 1].articles_spoiler.Contains(article))
 				msg_log += ":see_no_evil: Flagged as spoiler." + "\n";
+			msg_log += "> *" + article.title + "*";
 			_ = client.SendMessageAsync(settings.ch_logs, msg_log);
 
 			// update/create embeds
@@ -153,7 +185,22 @@ namespace WowheadDigest {
 					await client.SendMessageAsync(settings.ch_news, null, false, embed);
 				// TODO: make asynchronous
 			} else {
-				_ = digests[digests.Count - 1].message.ModifyAsync(null, embed);
+				await digests[digests.Count - 1].message.ModifyAsync(null, embed);
+			}
+		}
+
+		public async Task Remove(Article article, DiscordClient client) {
+			foreach (Digest digest in digests) {
+				if (digest.articles.Contains(article)) {
+					digest.articles.Remove(article);
+					string msg_log = ":no_entry_sign: Removed article: <" + article.url + ">" + "\n";
+					msg_log += "> *" + article.title + "*";
+					//_ = client.SendMessageAsync(settings.ch_logs, msg_log);
+
+					DiscordEmbed embed = digest.GetEmbed();
+					await digest.message.ModifyAsync(null, embed);
+					break;
+				}
 			}
 		}
 
