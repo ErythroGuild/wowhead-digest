@@ -21,6 +21,7 @@ namespace WowheadDigest {
 
 		const string path_token    = @"token.txt";
 		const string path_articles = @"articles.txt";
+		const string path_id_last  = @"id_last.txt";
 		const string path_settings = @"settings.txt";
 		const string path_digests  = @"digests.txt";
 
@@ -38,8 +39,10 @@ namespace WowheadDigest {
 			Console.WriteLine("========DEBUG MODE ON========");
 #endif
 			const string title_ascii =
+				"                                                         " + "\n" +
 				" █   █ ▄▀▄ █   █ █▄█ ██▀ ▄▀▄ █▀▄   █▀▄ █ ▄▀  ██▀ ▄▀▀ ▀█▀ " + "\n" +
-				" ▀▄▀▄▀ ▀▄▀ ▀▄▀▄▀ █ █ █▄▄ █▀█ █▄▀   █▄▀ █ ▀▄█ █▄▄ ▄██  █  " + "\n";
+				" ▀▄▀▄▀ ▀▄▀ ▀▄▀▄▀ █ █ █▄▄ █▀█ █▄▀   █▄▀ █ ▀▄█ █▄▄ ▄██  █  " + "\n" +
+				"                                                         ";
 			Console.WriteLine(title_ascii);
 			log.show_timestamp = true;
 			log.type_minimum = Logger.Type.Debug;
@@ -122,7 +125,7 @@ namespace WowheadDigest {
 							string digests = "";
 							while (reader.Peek() != -1) {
 								line = reader.ReadLine();
-								if (line.StartsWith("\t")) {
+								if (line.StartsWith("- ") || line.StartsWith("\t")) {
 									digests += line + "\n";
 								} else {
 									break;
@@ -163,6 +166,38 @@ namespace WowheadDigest {
 
 				log.Info("Writing back loaded data:");
 				Save();
+
+				log.Info("Checking for missed articles...");
+				DiscordChannel ch_ingest = await discord.GetChannelAsync(id_ch_ingest);
+				StreamReader reader_id_last = new StreamReader(path_id_last);
+				ulong id_last = Convert.ToUInt64(reader_id_last.ReadLine());
+				reader_id_last.Close();
+				List<DiscordMessage> messages_missed =
+					new List<DiscordMessage>(await ch_ingest.GetMessagesAfterAsync(id_last));
+
+				log.Info("Found " + messages_missed.Count.ToString() + " missed article(s).", 1);
+				foreach (DiscordMessage message in messages_missed) {
+					foreach (DiscordEmbed embed in message.Embeds) {
+						string url = embed.Url.AbsoluteUri;
+						string id = Article.UrlToId(url);
+						Article article = new Article(id, message.Timestamp.LocalDateTime);
+						if (articles.Contains(article))
+							continue;
+						articles.Add(article);
+						log.Info("Adding missed article.", 1);
+						log.Debug("id: " + id, 2);
+						log.Debug("time: " + article.time.ToString("T"), 2);
+
+						log.Info("Propagating missed article.", 1);
+						foreach (GuildData guildData_i in guildData.Values) {
+							await guildData_i.Push(article, discord);   // TODO: should this be asynchronous
+						}
+						Save();
+					}
+					StreamWriter writer_id_last = new StreamWriter(path_id_last);
+					writer_id_last.WriteLine(message.Id.ToString());
+					writer_id_last.Close();
+				}
 			};
 
 			discord.MessageCreated += async (s, e) => {
@@ -189,7 +224,6 @@ namespace WowheadDigest {
 					}
 					log.Debug("cmd: " + cmd, 2);
 					log.Debug("arg: " + arg, 2);
-					// TODO: make this synchronous...
 					string reply = ParseCommand(cmd, arg, e);
 					DiscordChannel ch_reply = e.Channel;
 #if DEBUG
@@ -219,10 +253,14 @@ namespace WowheadDigest {
 
 					log.Info("Propagating article.");
 					foreach (GuildData guildData_i in guildData.Values) {
-						await guildData_i.Push(article, discord);
+						await guildData_i.Push(article, discord);	// TODO: should this be asynchronous
 					}
 					Save();
 				}
+
+				StreamWriter writer_id_last = new StreamWriter(path_id_last);
+				writer_id_last.WriteLine(e.Message.Id.ToString());
+				writer_id_last.Close();
 			};
 
 			await discord.ConnectAsync();
@@ -263,6 +301,7 @@ namespace WowheadDigest {
 
 			// Instantiate discord client.
 			discord = new DiscordClient(new DiscordConfiguration {
+				MinimumLogLevel = Microsoft.Extensions.Logging.LogLevel.Warning,
 				Token = token,
 				TokenType = TokenType.Bot
 			});
@@ -271,6 +310,7 @@ namespace WowheadDigest {
 
 		static void Save() {
 			log.Info("Saving data...");
+
 			StreamWriter writer_settings = new StreamWriter(path_settings);
 			StreamWriter writer_digests = new StreamWriter(path_digests);
 			foreach (DiscordGuild guild in guildData.Keys) {
@@ -284,6 +324,13 @@ namespace WowheadDigest {
 			}
 			writer_settings.Close();
 			writer_digests.Close();
+
+			StreamWriter writer_articles = new StreamWriter(path_articles);
+			foreach(Article article in articles) {
+				writer_articles.WriteLine(article.ToString());
+			}
+			writer_articles.Close();
+
 			log.Info("Data saved.", 1);
 		}
 

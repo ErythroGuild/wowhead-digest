@@ -57,7 +57,7 @@ namespace WowheadDigest {
 					ulong msg_id = Convert.ToUInt64(split.Groups[2].Value);
 					digest.message = await channel.GetMessageAsync(msg_id);
 					digest.date_i = Convert.ToInt32(Convert.ToInt32(split.Groups[3].Value));
-					digest.date = DateTime.ParseExact(split.Groups[3].Value, "yyyy-MM-dd", null);
+					digest.date = DateTime.ParseExact(split.Groups[4].Value, "yyyy-MM-dd", null);
 
 					while (reader.Peek() != -1) {
 						line = reader.ReadLine();
@@ -99,7 +99,7 @@ namespace WowheadDigest {
 			data += "- " +
 				message.ChannelId.ToString() + "/" +
 				message.Id.ToString() + "#" +
-				date_i.ToString() + "@	" +
+				date_i.ToString() + "@" +
 				date.ToString("yyyy-MM-dd") + "\n";
 			foreach (Article article in articles) {
 				data += "\t" + article.ToString() + "\n";
@@ -116,8 +116,6 @@ namespace WowheadDigest {
 			if (articles.Count < 1)
 				return null;
 			Article article_example = articles.Min;
-
-			string str_time = article_example.time.TimeOfDay.ToString("T");
 			string url_thumbnail = article_example.thumbnail;
 
 			bool isFirstArticle = true;
@@ -141,7 +139,8 @@ namespace WowheadDigest {
 				.WithColor(new DiscordColor(color))
 				.WithThumbnail(url_thumbnail)
 				.WithDescription(content)
-				.WithFooter("last updated " + str_time, url_favicon);
+				.WithFooter("last updated", url_favicon)
+				.WithTimestamp(DateTimeOffset.Now);
 
 			return builder.Build();
 		}
