@@ -166,6 +166,38 @@ namespace WowheadDigest {
 
 				log.Info("Writing back loaded data:");
 				Save();
+
+				log.Info("Checking for missed articles...");
+				DiscordChannel ch_ingest = await discord.GetChannelAsync(id_ch_ingest);
+				StreamReader reader_id_last = new StreamReader(path_id_last);
+				ulong id_last = Convert.ToUInt64(reader_id_last.ReadLine());
+				reader_id_last.Close();
+				List<DiscordMessage> messages_missed =
+					new List<DiscordMessage>(await ch_ingest.GetMessagesAfterAsync(id_last));
+
+				log.Info("Found " + messages_missed.Count.ToString() + " missed article(s).", 1);
+				foreach (DiscordMessage message in messages_missed) {
+					foreach (DiscordEmbed embed in message.Embeds) {
+						string url = embed.Url.AbsoluteUri;
+						string id = Article.UrlToId(url);
+						Article article = new Article(id, message.Timestamp.LocalDateTime);
+						if (articles.Contains(article))
+							continue;
+						articles.Add(article);
+						log.Info("Adding missed article.", 1);
+						log.Debug("id: " + id, 2);
+						log.Debug("time: " + article.time.ToString("T"), 2);
+
+						log.Info("Propagating missed article.", 1);
+						foreach (GuildData guildData_i in guildData.Values) {
+							await guildData_i.Push(article, discord);   // TODO: should this be asynchronous
+						}
+						Save();
+					}
+					StreamWriter writer_id_last = new StreamWriter(path_id_last);
+					writer_id_last.WriteLine(message.Id.ToString());
+					writer_id_last.Close();
+				}
 			};
 
 			discord.MessageCreated += async (s, e) => {
