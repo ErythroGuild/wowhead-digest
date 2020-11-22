@@ -301,6 +301,7 @@ namespace WowheadDigest {
 
 			// Instantiate discord client.
 			discord = new DiscordClient(new DiscordConfiguration {
+				MinimumLogLevel = Microsoft.Extensions.Logging.LogLevel.Warning,
 				Token = token,
 				TokenType = TokenType.Bot
 			});
