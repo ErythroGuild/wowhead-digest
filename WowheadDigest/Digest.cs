@@ -116,8 +116,6 @@ namespace WowheadDigest {
 			if (articles.Count < 1)
 				return null;
 			Article article_example = articles.Min;
-
-			string str_time = article_example.time.TimeOfDay.ToString("T");
 			string url_thumbnail = article_example.thumbnail;
 
 			bool isFirstArticle = true;
@@ -141,7 +139,8 @@ namespace WowheadDigest {
 				.WithColor(new DiscordColor(color))
 				.WithThumbnail(url_thumbnail)
 				.WithDescription(content)
-				.WithFooter("last updated " + str_time, url_favicon);
+				.WithFooter("last updated", url_favicon)
+				.WithTimestamp(DateTimeOffset.Now);
 
 			return builder.Build();
 		}

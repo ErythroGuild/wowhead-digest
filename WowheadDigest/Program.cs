@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
@@ -21,6 +21,7 @@ namespace WowheadDigest {
 
 		const string path_token    = @"token.txt";
 		const string path_articles = @"articles.txt";
+		const string path_id_last  = @"id_last.txt";
 		const string path_settings = @"settings.txt";
 		const string path_digests  = @"digests.txt";
 
@@ -38,8 +39,10 @@ namespace WowheadDigest {
 			Console.WriteLine("========DEBUG MODE ON========");
 #endif
 			const string title_ascii =
+				"                                                         " + "\n" +
 				" █   █ ▄▀▄ █   █ █▄█ ██▀ ▄▀▄ █▀▄   █▀▄ █ ▄▀  ██▀ ▄▀▀ ▀█▀ " + "\n" +
-				" ▀▄▀▄▀ ▀▄▀ ▀▄▀▄▀ █ █ █▄▄ █▀█ █▄▀   █▄▀ █ ▀▄█ █▄▄ ▄██  █  " + "\n";
+				" ▀▄▀▄▀ ▀▄▀ ▀▄▀▄▀ █ █ █▄▄ █▀█ █▄▀   █▄▀ █ ▀▄█ █▄▄ ▄██  █  " + "\n" +
+				"                                                         ";
 			Console.WriteLine(title_ascii);
 			log.show_timestamp = true;
 			log.type_minimum = Logger.Type.Debug;
@@ -189,7 +192,6 @@ namespace WowheadDigest {
 					}
 					log.Debug("cmd: " + cmd, 2);
 					log.Debug("arg: " + arg, 2);
-					// TODO: make this synchronous...
 					string reply = ParseCommand(cmd, arg, e);
 					DiscordChannel ch_reply = e.Channel;
 #if DEBUG
@@ -219,10 +221,14 @@ namespace WowheadDigest {
 
 					log.Info("Propagating article.");
 					foreach (GuildData guildData_i in guildData.Values) {
-						await guildData_i.Push(article, discord);
+						await guildData_i.Push(article, discord);	// TODO: should this be asynchronous
 					}
 					Save();
 				}
+
+				StreamWriter writer_id_last = new StreamWriter(path_id_last);
+				writer_id_last.WriteLine(e.Message.Id.ToString());
+				writer_id_last.Close();
 			};
 
 			await discord.ConnectAsync();
