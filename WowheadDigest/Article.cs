@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Text.RegularExpressions;
 
 using HtmlAgilityPack;
@@ -138,8 +139,9 @@ namespace WowheadDigest {
 
 			string xpath = @"//head/meta[@property='og:title']";
 			HtmlNode node = doc.DocumentNode.SelectSingleNode(xpath);
+			string title = node.GetAttributeValue("content", null);
 
-			return node.GetAttributeValue("content", null);
+			return WebUtility.HtmlDecode(title);
 		}
 
 		private string GetThumbnail() {
