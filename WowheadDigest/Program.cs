@@ -125,7 +125,7 @@ namespace WowheadDigest {
 							string digests = "";
 							while (reader.Peek() != -1) {
 								line = reader.ReadLine();
-								if (line.StartsWith("\t")) {
+								if (line.StartsWith("- ") || line.StartsWith("\t")) {
 									digests += line + "\n";
 								} else {
 									break;
@@ -296,7 +296,6 @@ namespace WowheadDigest {
 			foreach(Article article in articles) {
 				writer_articles.WriteLine(article.ToString());
 			}
-			writer_articles.WriteLine();
 			writer_articles.Close();
 
 			log.Info("Data saved.", 1);

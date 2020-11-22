@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -25,13 +25,14 @@ namespace WowheadDigest {
 						if (line.StartsWith("\t")) {
 							data_digest += line + "\n";
 						} else {
-							Digest digest = await Digest.FromString(
-								data_digest,
-								settings,
-								client);
-							digests.Add(digest);
+							break;
 						}
 					}
+					Digest digest = await Digest.FromString(
+						data_digest,
+						settings,
+						client);
+					digests.Add(digest);
 				}
 			}
 		}
