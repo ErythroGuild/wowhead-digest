@@ -36,6 +36,7 @@ namespace WowheadDigest {
 
 		public const int max_articles = 10;
 
+		private static readonly string endl = Environment.NewLine;
 		private const Int32 color = 0xB21C1A;
 		private const string url_favicon = @"https://wow.zamimg.com/images/logos/favicon-standard.png";
 
@@ -100,9 +101,9 @@ namespace WowheadDigest {
 				message.ChannelId.ToString() + "/" +
 				message.Id.ToString() + "#" +
 				date_i.ToString() + "@" +
-				date.ToString("yyyy-MM-dd") + "\n";
+				date.ToString("yyyy-MM-dd") + endl;
 			foreach (Article article in articles) {
-				data += "\t" + article.ToString() + "\n";
+				data += "\t" + article.ToString() + endl;
 			}
 			return data;
 		}
