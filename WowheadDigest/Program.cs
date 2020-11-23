@@ -190,7 +190,7 @@ namespace WowheadDigest {
 
 						log.Info("Propagating missed article.", 1);
 						foreach (GuildData guildData_i in guildData.Values) {
-							await guildData_i.Push(article, discord);   // TODO: should this be asynchronous
+							await guildData_i.Add(article, discord);   // TODO: should this be asynchronous
 						}
 						Save();
 					}
@@ -224,7 +224,7 @@ namespace WowheadDigest {
 					}
 					log.Debug("cmd: " + cmd, 2);
 					log.Debug("arg: " + arg, 2);
-					string reply = ParseCommand(cmd, arg, e);
+					string reply = await ParseCommand(cmd, arg, e);
 					DiscordChannel ch_reply = e.Channel;
 #if DEBUG
 					ch_reply = await discord.GetChannelAsync(id_ch_debug);
@@ -253,7 +253,7 @@ namespace WowheadDigest {
 
 					log.Info("Propagating article.");
 					foreach (GuildData guildData_i in guildData.Values) {
-						await guildData_i.Push(article, discord);	// TODO: should this be asynchronous
+						await guildData_i.Add(article, discord);	// TODO: should this be asynchronous
 					}
 					Save();
 				}
@@ -301,7 +301,7 @@ namespace WowheadDigest {
 
 			// Instantiate discord client.
 			discord = new DiscordClient(new DiscordConfiguration {
-				MinimumLogLevel = Microsoft.Extensions.Logging.LogLevel.Warning,
+				LogTimestampFormat = "hh:mm:ss",
 				Token = token,
 				TokenType = TokenType.Bot
 			});
@@ -334,7 +334,7 @@ namespace WowheadDigest {
 			log.Info("Data saved.", 1);
 		}
 
-		static string ParseCommand(string cmd, string arg, MessageCreateEventArgs e) {
+		static async Task<string> ParseCommand(string cmd, string arg, MessageCreateEventArgs e) {
 			const string str_cmd_listSettings		= "list-settings";
 			const string str_cmd_listCategories		= "list-categories";
 			const string str_cmd_listSeries			= "list-series";
@@ -718,6 +718,7 @@ namespace WowheadDigest {
 					guildData[guild].settings.articles_hidden.Add(articleHide);
 					if (settings.articles_shown.Contains(articleHide))
 						guildData[guild].settings.articles_shown.Remove(articleHide);
+					await guildData[guild].Remove(articleHide, discord);
 					Save();
 					output = ":no_entry_sign: Article hidden: <" + articleHide.url + ">" + "\n";
 					output += "> *" + articleHide.title + "*" + "\n";
@@ -735,6 +736,7 @@ namespace WowheadDigest {
 					guildData[guild].settings.articles_shown.Add(articleShow);
 					if (settings.articles_hidden.Contains(articleShow))
 						guildData[guild].settings.articles_hidden.Remove(articleShow);
+					await guildData[guild].Add(articleShow, discord);
 					Save();
 					output = ":white_check_mark: Article shown: <" + articleShow.url + ">" + "\n";
 					output += "> *" + articleShow.title + "*" + "\n";
@@ -752,9 +754,10 @@ namespace WowheadDigest {
 					guildData[guild].settings.articles_spoilered.Add(articleSpoiler);
 					if (settings.articles_unspoilered.Contains(articleSpoiler))
 						guildData[guild].settings.articles_unspoilered.Remove(articleSpoiler);
+					await guildData[guild].UpdateEmbed(articleSpoiler, discord);
 					Save();
 					output = ":see_no_evil: Article marked as spoiler: <" + articleSpoiler.url + ">" + "\n";
-					output += "> ||*" + articleSpoiler.title + "*||" + "\n";
+					output += "> *" + articleSpoiler.title + "*";
 				} else {
 					output = "That article isn't being tracked." + "\n";
 				}
@@ -766,9 +769,10 @@ namespace WowheadDigest {
 				Article articleUnspoiler = new Article(arg, DateTime.Now);   // datetime doesn't matter
 				if (articles.Contains(articleUnspoiler)) {
 					articles.TryGetValue(articleUnspoiler, out articleUnspoiler);
-					guildData[guild].settings.articles_spoilered.Add(articleUnspoiler);
-					if (settings.articles_unspoilered.Contains(articleUnspoiler))
-						guildData[guild].settings.articles_unspoilered.Remove(articleUnspoiler);
+					guildData[guild].settings.articles_unspoilered.Add(articleUnspoiler);
+					if (settings.articles_spoilered.Contains(articleUnspoiler))
+						guildData[guild].settings.articles_spoilered.Remove(articleUnspoiler);
+					await guildData[guild].UpdateEmbed(articleUnspoiler, discord);
 					Save();
 					output = ":monkey_face: Article marked as spoiler-free: <" + articleUnspoiler.url + ">" + "\n";
 					output += "> *" + articleUnspoiler.title + "*" + "\n";

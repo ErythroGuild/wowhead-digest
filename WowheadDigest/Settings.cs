@@ -26,6 +26,7 @@ namespace WowheadDigest {
 		public HashSet<Article> articles_spoilered;
 		public HashSet<Article> articles_unspoilered;
 
+		private static readonly string endl = Environment.NewLine;
 		private const string delim_key = ": ";
 		private const string delim_list = ", ";
 
@@ -82,7 +83,7 @@ namespace WowheadDigest {
 		}
 
 		private static void AddKey(ref string data, string key, string val) {
-			data += "\t" + key + delim_key + val + "\n";
+			data += "\t" + key + delim_key + val + endl;
 		}
 
 		private static void AddKey(ref string data, string key, List<string> vals) {
@@ -98,7 +99,7 @@ namespace WowheadDigest {
 				data += val;
 			}
 
-			data += "]\n";
+			data += "]" + endl;
 		}
 
 		// Hide default constructor.
